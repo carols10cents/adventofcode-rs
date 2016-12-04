@@ -67,7 +67,12 @@ mod test {
 
     #[test]
     fn r1_r1_is_two() {
-        assert_eq!(distance("R1 R1"), 2);
+        assert_eq!(distance("R1, R1"), 2);
+    }
+
+    #[test]
+    fn something_more() {
+        assert_eq!(distance("R2, L5, L4, L5, R4"), 6);
     }
 
     #[test]
