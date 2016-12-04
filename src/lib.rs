@@ -7,14 +7,29 @@ pub enum Direction {
 }
 
 pub fn distance(input: &str) -> u32 {
-    let mut chars = input.chars();
-    if let (Some(_turn_dir), Some(num_blocks)) = (chars.next(), chars.next()) {
-        let num_blocks: u32 = num_blocks.to_string()
-                                        .parse()
-                                        .expect("Cannot parse");
-        return num_blocks
+    let mut location: (i32, i32) = (0, 0);
+    let mut direction = Direction::North;
+
+    for instruction in input.split_whitespace() {
+        let mut chars = instruction.chars();
+        if let (Some(turn_dir), Some(num_blocks)) = (chars.next(), chars.next()) {
+            direction = turn(direction, turn_dir);
+            let num_blocks: i32 = num_blocks.to_string()
+                                            .parse()
+                                            .expect("Cannot parse");
+            match direction {
+                Direction::North => location.1 += num_blocks,
+                Direction::East => location.0 += num_blocks,
+                Direction::South => location.1 -= num_blocks,
+                Direction::West => location.0 -= num_blocks,
+            }
+
+        } else {
+            panic!("Could not get instructions out of {}", instruction);
+        }
+
     }
-    panic!("oh no!");
+    (location.0.abs() + location.1.abs()) as u32
 }
 
 pub fn turn(initial_direction: Direction, turn_command: char) -> Direction {
@@ -42,8 +57,13 @@ mod test {
     use super::*;
 
     #[test]
-    fn right_one_is_one() {
+    fn r1_is_one() {
         assert_eq!(distance("R1"), 1);
+    }
+
+    #[test]
+    fn r1_r1_is_two() {
+        assert_eq!(distance("R1 R1"), 2);
     }
 
     #[test]
