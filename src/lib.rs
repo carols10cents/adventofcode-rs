@@ -6,8 +6,13 @@ pub enum Direction {
     West,
 }
 
+pub struct Point {
+    x: i32,
+    y: i32,
+}
+
 pub fn distance(input: &str) -> u32 {
-    let mut location: (i32, i32) = (0, 0);
+    let mut location = Point { x: 0, y: 0 };
     let mut direction = Direction::North;
 
     for instruction in input.split_whitespace() {
@@ -18,18 +23,17 @@ pub fn distance(input: &str) -> u32 {
                                             .parse()
                                             .expect("Cannot parse");
             match direction {
-                Direction::North => location.1 += num_blocks,
-                Direction::East => location.0 += num_blocks,
-                Direction::South => location.1 -= num_blocks,
-                Direction::West => location.0 -= num_blocks,
+                Direction::North => location.y += num_blocks,
+                Direction::East  => location.x += num_blocks,
+                Direction::South => location.y -= num_blocks,
+                Direction::West  => location.x -= num_blocks,
             }
-
         } else {
             panic!("Could not get instructions out of {}", instruction);
         }
 
     }
-    (location.0.abs() + location.1.abs()) as u32
+    (location.x.abs() + location.y.abs()) as u32
 }
 
 pub fn turn(initial_direction: Direction, turn_command: char) -> Direction {
