@@ -75,7 +75,7 @@ mod test {
         let input = "\
   785  516  744
   272  511  358
-  801  791  2
+    1  791  600
 ";
         assert_eq!(puzzle(input), 2);
     }
