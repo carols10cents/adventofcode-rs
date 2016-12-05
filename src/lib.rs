@@ -8,7 +8,7 @@ pub enum Direction {
     West,
 }
 
-#[derive(Hash, PartialEq, Eq, Copy, Clone)]
+#[derive(Hash, PartialEq, Eq, Copy, Clone, Debug)]
 pub struct Point {
     x: i32,
     y: i32,
@@ -29,26 +29,25 @@ pub fn distance(input: &str) -> u32 {
     for instruction in input.split(", ") {
         let (turn_dir, num_blocks) = instruction.split_at(1);
 
-        println!("Now processing ({}) ({})", turn_dir, num_blocks);
         direction = turn(direction, turn_dir);
         let num_blocks: i32 = num_blocks.to_string()
                                         .trim()
                                         .parse()
                                         .expect("Cannot parse");
-        println!("Going {:?} {} blocks", direction, num_blocks);
-        match direction {
-            Direction::North => location.y += num_blocks,
-            Direction::East  => location.x += num_blocks,
-            Direction::South => location.y -= num_blocks,
-            Direction::West  => location.x -= num_blocks,
+        for _ in 0..num_blocks {
+            match direction {
+                Direction::North => location.y += 1,
+                Direction::East  => location.x += 1,
+                Direction::South => location.y -= 1,
+                Direction::West  => location.x -= 1,
+            }
+            println!("{:?}", location);
+            if visited_locations.contains(&location) {
+                return location.distance_to_origin();
+            } else {
+                visited_locations.insert(location);
+            }
         }
-
-        if visited_locations.contains(&location) {
-            return location.distance_to_origin();
-        } else {
-            visited_locations.insert(location);
-        }
-        println!("Location: ({}, {})", location.x, location.y);
     }
     panic!("No location visited twice.");
 }
