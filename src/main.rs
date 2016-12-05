@@ -6,7 +6,14 @@ extern crate advent;
 use advent::Keypad;
 
 fn main() {
-    let mut keypad = Keypad::new("123\n456\n789");
+    let keypad_input = [
+        "  1  ",
+        " 234 ",
+        "56789",
+        " ABC ",
+        "  D  ",
+    ].join("\n");
+    let mut keypad = Keypad::new(&keypad_input);
 
     let mut file = File::open("./src/input.txt")
                         .expect("Could not open input.txt");
