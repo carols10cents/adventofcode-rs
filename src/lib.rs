@@ -1,3 +1,5 @@
+use std::cmp;
+
 pub struct Keypad {
     width: usize,
     height: usize,
@@ -7,7 +9,7 @@ pub struct Keypad {
 }
 
 impl Keypad {
-    fn new(layout_description: &str) -> Keypad {
+    pub fn new(layout_description: &str) -> Keypad {
         let layout: Vec<Vec<char>> = layout_description
                          .lines()
                          .map(|line| line.chars().collect::<Vec<_>>() )
@@ -35,15 +37,31 @@ impl Keypad {
         }
     }
 
+    fn move_a_key(&mut self, instruction: char) {
+        println!("{} {}", self.current_value(), instruction);
+        match instruction {
+            'U' => self.y = self.y.saturating_sub(1),
+            'D' => self.y = cmp::min(self.height - 1, self.y + 1),
+            'L' => self.x = self.x.saturating_sub(1),
+            'R' => self.x = cmp::min(self.width - 1, self.x + 1),
+            other => panic!("Don't know how to move ({})!", other),
+        }
+        println!("({}, {}) = {}", self.x, self.y, self.current_value());
+    }
+
     fn current_value(&self) -> char {
         self.layout[self.y][self.x]
     }
 }
 
-pub fn puzzle(input: &str) -> String {
-    let mut keypad = Keypad::new("1");
+pub fn puzzle(keypad: &mut Keypad, input: &str) -> String {
     let mut answer = String::new();
-
+    for line in input.lines() {
+        for c in line.chars() {
+            keypad.move_a_key(c);
+        }
+        answer.push(keypad.current_value());
+    }
     answer
 }
 
@@ -73,5 +91,30 @@ mod test {
         assert_eq!(keypad.width, 3);
         assert_eq!(keypad.height, 3);
         assert_eq!(keypad.current_value(), '5');
+    }
+
+    #[test]
+    fn regular_move() {
+        let mut keypad = Keypad::new("123\n456\n789");
+
+        keypad.move_a_key('U');
+        assert_eq!(keypad.current_value(), '2');
+    }
+
+    #[test]
+    fn ignored_move() {
+        let mut keypad = Keypad::new("123\n456\n789");
+
+        keypad.move_a_key('U');
+        keypad.move_a_key('U');
+        assert_eq!(keypad.current_value(), '2');
+    }
+
+    #[test]
+    fn overall_puzzle() {
+        let mut keypad = Keypad::new("123\n456\n789");
+        let input = "ULL\nRRDDD\nLURDL\nUUUUD\n";
+        let answer = puzzle(&mut keypad, input);
+        assert_eq!(String::from("1985"), answer);
     }
 }
