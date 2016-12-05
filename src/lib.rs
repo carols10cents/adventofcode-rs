@@ -26,8 +26,6 @@ pub fn next_interesting_md5(door_id: &str, mut index: u32) -> (u32, char) {
             index += 1;
         }
     }
-
-    (0, 'a')
 }
 
 #[cfg(test)]
