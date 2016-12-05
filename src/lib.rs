@@ -11,6 +11,10 @@ pub fn puzzle(door_id: &str) -> String {
     answer
 }
 
+pub fn next_interesting_md5(door_id: &str, index: u32) -> (u32, char) {
+    (0, 'a')
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
