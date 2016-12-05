@@ -1,126 +1,49 @@
-use std::collections::HashMap;
-
 pub struct Keypad {
-    layout: HashMap<u8, Key>,
-    current_value: u8,
+    width: usize,
+    height: usize,
+    layout: Vec<Vec<char>>,
+    x: usize,
+    y: usize,
 }
 
 impl Keypad {
-    fn new() -> Keypad {
-        let mut layout = HashMap::new();
+    fn new(layout_description: &str) -> Keypad {
+        let layout: Vec<Vec<char>> = layout_description
+                         .lines()
+                         .map(|line| line.chars().collect::<Vec<_>>() )
+                         .collect();
 
-        layout.insert(1, Key {
-           value: 1,
-           left: None,
-           up: None,
-           right: Some(2),
-           down: Some(4),
-        });
+        let mut x = 0;
+        let mut y = 0;
 
-        layout.insert(2, Key {
-           value: 2,
-           left: Some(1),
-           up: None,
-           right: Some(3),
-           down: Some(5),
-        });
-
-        layout.insert(3, Key {
-           value: 3,
-           left: Some(2),
-           up: None,
-           right: None,
-           down: Some(6),
-        });
-
-        layout.insert(4, Key {
-           value: 4,
-           left: None,
-           up: Some(1),
-           right: Some(5),
-           down: Some(7),
-        });
-
-        layout.insert(5, Key {
-           value: 5,
-           left: Some(4),
-           up: Some(2),
-           right: Some(6),
-           down: Some(8),
-        });
-
-        layout.insert(6, Key {
-           value: 6,
-           left: Some(5),
-           up: Some(3),
-           right: None,
-           down: Some(9),
-        });
-
-        layout.insert(7, Key {
-           value: 7,
-           left: None,
-           up: Some(4),
-           right: Some(8),
-           down: None,
-        });
-
-        layout.insert(8, Key {
-           value: 8,
-           left: Some(7),
-           up: Some(5),
-           right: Some(9),
-           down: None,
-        });
-
-        layout.insert(9, Key {
-           value: 9,
-           left: Some(8),
-           up: Some(6),
-           right: None,
-           down: None,
-        });
+        for (yi, yval) in layout.iter().enumerate() {
+            for (xi, &xval) in yval.iter().enumerate() {
+                if xval == '5' {
+                    x = xi;
+                    y = yi;
+                    break;
+                }
+            }
+        }
 
         Keypad {
+            width: layout[0].len(),
+            height: layout.len(),
             layout: layout,
-            current_value: 5,
+            x: x,
+            y: y,
         }
     }
 
-    fn move_a_key(&mut self, instruction: char) {
-        let current_key = self.layout.get(&self.current_value)
-                                     .expect("impossible missing key");
-
-        let next_key_value = match instruction {
-            'U' => current_key.up.unwrap_or(current_key.value),
-            'D' => current_key.down.unwrap_or(current_key.value),
-            'L' => current_key.left.unwrap_or(current_key.value),
-            'R' => current_key.right.unwrap_or(current_key.value),
-            other => panic!("Don't know how to move ({})!", other),
-        };
-
-        self.current_value = next_key_value;
+    fn current_value(&self) -> char {
+        self.layout[self.y][self.x]
     }
-}
-
-struct Key {
-    value: u8,
-    left: Option<u8>,
-    right: Option<u8>,
-    up: Option<u8>,
-    down: Option<u8>,
 }
 
 pub fn puzzle(input: &str) -> String {
-    let mut keypad = Keypad::new();
+    let mut keypad = Keypad::new("1");
     let mut answer = String::new();
 
-    for line in input.lines() {
-        for c in line.chars() {
-            keypad.move_a_key(c);
-        }
-        answer.push_str(&format!("{}", keypad.current_value));
-    }
     answer
 }
 
@@ -129,26 +52,26 @@ mod test {
     use super::*;
 
     #[test]
-    fn regular_move() {
-        let mut keypad = Keypad::new();
-
-        keypad.move_a_key('U');
-        assert_eq!(keypad.current_value, 2);
+    fn small_keypad_construction() {
+        let keypad = Keypad::new("1");
+        assert_eq!(keypad.width, 1);
+        assert_eq!(keypad.height, 1);
+        assert_eq!(keypad.current_value(), '1');
     }
 
     #[test]
-    fn ignored_move() {
-        let mut keypad = Keypad::new();
-
-        keypad.move_a_key('U');
-        keypad.move_a_key('U');
-        assert_eq!(keypad.current_value, 2);
+    fn tall_keypad_construction() {
+        let keypad = Keypad::new("1\n2\n3");
+        assert_eq!(keypad.width, 1);
+        assert_eq!(keypad.height, 3);
+        assert_eq!(keypad.current_value(), '1');
     }
 
     #[test]
-    fn overall_puzzle() {
-        let input = "ULL\nRRDDD\nLURDL\nUUUUD\n";
-        let answer = puzzle(input);
-        assert_eq!(String::from("1985"), answer);
+    fn desired_keypad_construction() {
+        let keypad = Keypad::new("123\n456\n789");
+        assert_eq!(keypad.width, 3);
+        assert_eq!(keypad.height, 3);
+        assert_eq!(keypad.current_value(), '5');
     }
 }
