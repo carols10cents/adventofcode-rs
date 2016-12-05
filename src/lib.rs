@@ -6,7 +6,16 @@ extern crate regex;
 use regex::Regex;
 
 pub fn puzzle(input: &str) -> u32 {
-    0
+    let mut sum_of_sector_ids = 0;
+
+    for line in input.lines() {
+        let room = Room::new(line);
+        if room.is_real() {
+            sum_of_sector_ids += room.sector_id;
+        }
+    }
+
+    sum_of_sector_ids
 }
 
 pub struct Room {
@@ -37,7 +46,7 @@ impl Room {
     }
 
     fn computed_checksum(&self) -> String {
-        let mut most_common = self.five_most_common_chars();
+        let most_common = self.five_most_common_chars();
         let mut s = String::new();
         for &c in most_common.iter() {
             s.push(c);
@@ -129,5 +138,17 @@ mod test {
     #[test]
     fn decoy_rooms() {
         assert!( ! Room::new("totally-real-room-200[decoy]").is_real() );
+    }
+
+    #[test]
+    fn test_puzzle() {
+        let input = [
+            "aaaaa-bbb-z-y-x-123[abxyz]",
+            "a-b-c-d-e-f-g-h-987[abcde]",
+            "not-a-real-room-404[oarel]",
+            "totally-real-room-200[decoy]",
+        ].join("\n");
+
+        assert_eq!(puzzle(&input), 1514);
     }
 }
