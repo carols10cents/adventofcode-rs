@@ -111,9 +111,17 @@ struct Key {
     down: Option<u8>,
 }
 
-pub fn puzzle(input: &str) -> u8 {
-    let keypad = Keypad::new();
-    1
+pub fn puzzle(input: &str) -> String {
+    let mut keypad = Keypad::new();
+    let mut answer = String::new();
+
+    for line in input.lines() {
+        for c in line.chars() {
+            keypad.move_a_key(c);
+        }
+        answer.push_str(&format!("{}", keypad.current_value));
+    }
+    answer
 }
 
 #[cfg(test)]
@@ -135,5 +143,12 @@ mod test {
         keypad.move_a_key('U');
         keypad.move_a_key('U');
         assert_eq!(keypad.current_value, 2);
+    }
+
+    #[test]
+    fn overall_puzzle() {
+        let input = "ULL\nRRDDD\nLURDL\nUUUUD\n";
+        let answer = puzzle(input);
+        assert_eq!(String::from("1985"), answer);
     }
 }
