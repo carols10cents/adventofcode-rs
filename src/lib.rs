@@ -38,7 +38,6 @@ impl Room {
 
     fn computed_checksum(&self) -> String {
         let mut most_common = self.five_most_common_chars();
-        most_common.sort();
         let mut s = String::new();
         for &c in most_common.iter() {
             s.push(c);
