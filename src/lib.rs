@@ -60,8 +60,10 @@ impl Room {
     fn chars_by_frequency(&self) -> HashMap<char, u32> {
         let mut freqs = HashMap::new();
         for c in self.name.chars() {
-            let count = freqs.entry(c).or_insert(0);
-            *count += 1;
+            if c != '-' {
+                let count = freqs.entry(c).or_insert(0);
+                *count += 1;
+            }
         }
         freqs
     }
@@ -70,6 +72,7 @@ impl Room {
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::collections::HashMap;
 
     #[test]
     fn test_extraction() {
@@ -79,6 +82,18 @@ mod test {
         assert_eq!(room.name, "aaaaa-bbb-z-y-x");
         assert_eq!(room.sector_id, 123);
         assert_eq!(room.checksum, "abxyz");
+    }
+
+    #[test]
+    fn test_chars_by_freq() {
+        let room = Room::new("aaaaa-bbb-z-y-x-123[abxyz]");
+        let mut expected = HashMap::new();
+        expected.insert('a', 5);
+        expected.insert('b', 3);
+        expected.insert('z', 1);
+        expected.insert('y', 1);
+        expected.insert('x', 1);
+        assert_eq!(room.chars_by_frequency(), expected);
     }
 
     #[test]
