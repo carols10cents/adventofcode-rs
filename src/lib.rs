@@ -112,6 +112,15 @@ mod test {
     }
 
     #[test]
+    fn test_five_most_common_chars() {
+        let room = Room::new("aaaaa-bbb-z-y-x-123[abxyz]");
+        assert_eq!(
+            room.chars_by_frequency_desc(),
+            vec!['a', 'b', 'x', 'y', 'z']
+        );
+    }
+
+    #[test]
     fn real_rooms() {
         assert!(Room::new("aaaaa-bbb-z-y-x-123[abxyz]").is_real());
         assert!(Room::new("a-b-c-d-e-f-g-h-987[abcde]").is_real());
