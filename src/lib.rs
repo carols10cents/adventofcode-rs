@@ -2,17 +2,30 @@
 pub fn puzzle(input: &str) -> u32 {
     let mut num_triangles = 0;
 
-    for line in input.lines() {
-        let dims = line.split_whitespace();
+    // Deciding to stream rather than collect and use slice chunk
+    let mut lines = input.lines().peekable();
 
-        let dims = dims.map(|dim| {
-            dim.parse::<u32>().expect("Could not parse!")
-        }).collect::<Vec<_>>();
+    while lines.peek().is_some() {
+        // Kinda... not great
+        let chunk = [
+            lines.next().expect("No first line"),
+            lines.next().expect("No second line"),
+            lines.next().expect("No third line"),
+        ];
 
-        println!("dimensions are: {}, {}, {}", dims[0], dims[1], dims[2]);
+        let chunk: Vec<Vec<u32>> = chunk.iter().map(|line| {
+            line.split_whitespace().map(|dim| {
+                dim.parse::<u32>().expect("Could not parse!")
+            }).collect()
+        }).collect();
 
-        if is_a_triangle(dims[0], dims[1], dims[2]) {
-            num_triangles += 1;
+        for i in 0..2 {
+            let dims: Vec<u32> = chunk.iter().map(|v| v[i] ).collect();
+            println!("dimensions are: {}, {}, {}", dims[0], dims[1], dims[2]);
+
+            if is_a_triangle(dims[0], dims[1], dims[2]) {
+                num_triangles += 1;
+            }
         }
     }
 
@@ -62,8 +75,8 @@ mod test {
         let input = "\
   785  516  744
   272  511  358
-  801  791  693
-  572  150   74";
-        assert_eq!(puzzle(input), 3);
+  801  791  2
+";
+        assert_eq!(puzzle(input), 2);
     }
 }
