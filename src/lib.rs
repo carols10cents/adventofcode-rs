@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::cmp::Ordering;
 
 extern crate regex;
 
@@ -53,7 +54,12 @@ impl Room {
         let mut tuples: Vec<(char, u32)> = self.chars_by_frequency()
                                                .into_iter()
                                                .collect();
-        tuples.sort_by(|a, b| b.1.cmp(&a.1) );
+        tuples.sort_by(|a, b| {
+            match b.1.cmp(&a.1) {
+                Ordering::Equal => a.0.cmp(&b.0),
+                other => other,
+            }
+        });
         tuples.iter().map( |&(k, _)| k ).collect()
     }
 
@@ -94,6 +100,15 @@ mod test {
         expected.insert('y', 1);
         expected.insert('x', 1);
         assert_eq!(room.chars_by_frequency(), expected);
+    }
+
+    #[test]
+    fn test_chars_by_freq_desc() {
+        let room = Room::new("aaaaa-bbb-z-y-x-123[abxyz]");
+        assert_eq!(
+            room.chars_by_frequency_desc(),
+            vec!['a', 'b', 'x', 'y', 'z']
+        );
     }
 
     #[test]
