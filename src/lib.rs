@@ -79,7 +79,7 @@ mod test {
 
     #[test]
     fn hq_is_first_location_visited_twice() {
-        assert_eq!(distance("R2, L1, L1, L1, L1, R5"), 2);
+        assert_eq!(distance("R2, L1, L1, L1, L1, R5"), 1);
     }
 
     #[test]
@@ -107,6 +107,4 @@ mod test {
         dir = turn(dir, "R");
         assert_eq!(dir, Direction::North);
     }
-
-
 }
