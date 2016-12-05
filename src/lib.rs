@@ -14,8 +14,8 @@ pub struct Room {
 
 impl Room {
     fn new(description: &str) -> Room {
-        let regex = Regex::new(r"
-(?P<name>[a-z-])
+        let regex = Regex::new(r"(?x)
+(?P<name>[a-z-]+)
 -
 (?P<sector_id>[0-9]+)
 \[(?P<checksum>[a-z]{5})\]
@@ -25,8 +25,8 @@ impl Room {
 
         Room {
             name: caps.name("name").expect("No name").to_string(),
-            sector_id: caps.name("sector_id").expect("No sector id").parse().expect("Can't parse"),
-            checksum: caps.name("checksum").expect("No checksum").to_string(),
+            sector_id: 3, //caps.name("sector_id").expect("No sector id").parse().expect("Can't parse"),
+            checksum: String::from("hi"), //caps.name("checksum").expect("No checksum").to_string(),
         }
     }
 }
