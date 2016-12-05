@@ -1,6 +1,6 @@
 
 pub fn puzzle(door_id: &str) -> String {
-    let answer = String::new();
+    let mut answer = String::new();
     let mut index = 0;
 
     for _ in 0..9 {
