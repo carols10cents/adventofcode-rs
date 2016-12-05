@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 extern crate regex;
 
 use regex::Regex;
@@ -30,7 +32,32 @@ impl Room {
     }
 
     fn is_real(&self) -> bool {
-        true
+        self.checksum == self.computed_checksum()
+    }
+
+    fn computed_checksum(&self) -> String {
+        self.five_most_common_chars().sort().join("")
+    }
+
+    fn five_most_common_chars(&self) -> Vec<char> {
+        self.chars_by_frequency_desc().take(5)
+    }
+
+    fn chars_by_frequency_desc(&self) -> Vec<char> {
+        self.chars_by_frequency()
+            .sort_by(|(_, v)| v)
+            .rev()
+            .map( |(k, _)| k )
+            .collect()
+    }
+
+    fn chars_by_frequency(&self) -> HashMap<char, u32> {
+        let mut freqs = HashMap::new();
+        for c in self.name.chars() {
+            let count = freqs.entry(c).or_insert(0);
+            *count += 1;
+        }
+        freqs
     }
 }
 
