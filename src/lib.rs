@@ -15,9 +15,13 @@ pub fn puzzle(door_id: &str) -> String {
 pub fn next_interesting_md5(door_id: &str, mut index: u32) -> (u32, char) {
     loop {
         let candidate = format!("{}{}", door_id, index);
-        let digest = md5::compute(candidate);
+
+        let digest = String::from_utf8(
+            md5::compute(candidate.as_bytes()).into_iter().cloned().collect()
+        ).expect("creating string failed");
+
         if digest.starts_with("00000") {
-            return (index, digest.char_at(5))
+            return (index, digest.chars().nth(5).expect("no 5th char"))
         } else {
             index += 1;
         }
