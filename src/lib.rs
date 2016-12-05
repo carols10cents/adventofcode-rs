@@ -1,6 +1,22 @@
 
 pub fn puzzle(input: &str) -> u32 {
-    0
+    let mut num_triangles = 0;
+
+    for line in input.lines() {
+        let dims = line.split_whitespace();
+
+        let dims = dims.map(|dim| {
+            dim.parse::<u32>().expect("Could not parse!")
+        }).collect::<Vec<_>>();
+
+        println!("dimensions are: {}, {}, {}", dims[0], dims[1], dims[2]);
+
+        if is_a_triangle(dims[0], dims[1], dims[2]) {
+            num_triangles += 1;
+        }
+    }
+
+    num_triangles
 }
 
 pub fn is_a_triangle(a: u32, b: u32, c: u32) -> bool {
@@ -39,5 +55,15 @@ mod test {
         assert!( ! is_a_triangle(10, 25, 5) );
         assert!( ! is_a_triangle(25, 5, 10) );
         assert!( ! is_a_triangle(25, 10, 5) );
+    }
+
+    #[test]
+    fn whole_puzzle() {
+        let input = "\
+  785  516  744
+  272  511  358
+  801  791  693
+  572  150   74";
+        assert_eq!(puzzle(input), 3);
     }
 }
