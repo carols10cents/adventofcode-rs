@@ -83,10 +83,37 @@ impl Room {
     }
 }
 
+pub fn decrypt(name: &str, rot: u32) -> String {
+    let mut answer = String::new();
+
+    for c in name.chars() {
+        if c == '-' {
+            answer.push(' ');
+        } else {
+            answer.push(rotn(c, rot))
+        }
+    }
+
+    answer
+}
+
+fn rotn(c: char, rot: u32) -> char {
+    let index = (((c.to_digit(36).expect("to_digit failed") - 10) + rot) % 26) as usize;
+    let alphabet = "abcdefghijklmnopqrstuvwxyz";
+    let alphabet: Vec<char> = alphabet.chars().collect();
+    alphabet[index]
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
     use std::collections::HashMap;
+
+    #[test]
+    fn test_decryption() {
+        let answer = decrypt("qzmt-zixmtkozy-ivhz", 343);
+        assert_eq!("very encrypted name", answer);
+    }
 
     #[test]
     fn test_extraction() {
