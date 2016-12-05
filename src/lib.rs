@@ -19,7 +19,7 @@ pub fn puzzle(input: &str) -> u32 {
             }).collect()
         }).collect();
 
-        for i in 0..2 {
+        for i in 0..3 {
             let dims: Vec<u32> = chunk.iter().map(|v| v[i] ).collect();
             println!("dimensions are: {}, {}, {}", dims[0], dims[1], dims[2]);
 
