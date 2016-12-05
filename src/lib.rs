@@ -12,6 +12,7 @@ pub fn puzzle(input: &str) -> u32 {
         let room = Room::new(line);
         if room.is_real() {
             sum_of_sector_ids += room.sector_id;
+            println!("{} = {}", decrypt(&room.name, room.sector_id), room.sector_id);
         }
     }
 
