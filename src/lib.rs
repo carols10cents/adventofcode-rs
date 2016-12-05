@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-struct Keypad {
+pub struct Keypad {
     layout: HashMap<u8, Key>,
     current_value: u8,
 }
@@ -86,6 +86,21 @@ impl Keypad {
             current_value: 5,
         }
     }
+
+    fn move_a_key(&mut self, instruction: char) {
+        let current_key = self.layout.get(&self.current_value)
+                                     .expect("impossible missing key");
+
+        let next_key_value = match instruction {
+            'U' => current_key.up.unwrap_or(current_key.value),
+            'D' => current_key.down.unwrap_or(current_key.value),
+            'L' => current_key.left.unwrap_or(current_key.value),
+            'R' => current_key.right.unwrap_or(current_key.value),
+            other => panic!("Don't know how to move ({})!", other),
+        };
+
+        self.current_value = next_key_value;
+    }
 }
 
 struct Key {
@@ -104,4 +119,21 @@ pub fn puzzle(input: &str) -> u8 {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn regular_move() {
+        let mut keypad = Keypad::new();
+
+        keypad.move_a_key('U');
+        assert_eq!(keypad.current_value, 2);
+    }
+
+    #[test]
+    fn ignored_move() {
+        let mut keypad = Keypad::new();
+
+        keypad.move_a_key('U');
+        keypad.move_a_key('U');
+        assert_eq!(keypad.current_value, 2);
+    }
 }
