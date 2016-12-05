@@ -36,19 +36,25 @@ impl Room {
     }
 
     fn computed_checksum(&self) -> String {
-        self.five_most_common_chars().sort().join("")
+        let mut most_common = self.five_most_common_chars();
+        most_common.sort();
+        let mut s = String::new();
+        for &c in most_common.iter() {
+            s.push(c);
+        }
+        s
     }
 
     fn five_most_common_chars(&self) -> Vec<char> {
-        self.chars_by_frequency_desc().take(5)
+        self.chars_by_frequency_desc().into_iter().take(5).collect()
     }
 
     fn chars_by_frequency_desc(&self) -> Vec<char> {
-        self.chars_by_frequency()
-            .sort_by(|(_, v)| v)
-            .rev()
-            .map( |(k, _)| k )
-            .collect()
+        let mut tuples: Vec<(char, u32)> = self.chars_by_frequency()
+                                               .into_iter()
+                                               .collect();
+        tuples.sort_by(|a, b| b.1.cmp(&a.1) );
+        tuples.iter().map( |&(k, _)| k ).collect()
     }
 
     fn chars_by_frequency(&self) -> HashMap<char, u32> {
