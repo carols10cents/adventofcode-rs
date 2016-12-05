@@ -17,6 +17,21 @@ mod test {
     }
 
     #[test]
+    fn isoceles_triangle() {
+        assert!(is_a_triangle(13, 13, 3));
+    }
+
+    #[test]
+    fn acute_triangle() { // so cute
+        assert!(is_a_triangle(208, 203, 145));
+    }
+
+    #[test]
+    fn obtuse_triangle() {
+        assert!(is_a_triangle(244, 360, 159));
+    }
+
+    #[test]
     fn not_a_triangle() {
         assert!( ! is_a_triangle(5, 10, 25) );
         assert!( ! is_a_triangle(5, 25, 10) );
