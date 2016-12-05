@@ -66,7 +66,7 @@ impl Keypad {
         });
 
         layout.insert(8, Key {
-           value: 1,
+           value: 8,
            left: Some(7),
            up: Some(5),
            right: Some(9),
