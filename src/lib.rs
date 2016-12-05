@@ -40,13 +40,29 @@ impl Keypad {
     fn move_a_key(&mut self, instruction: char) {
         println!("{} {}", self.current_value(), instruction);
         match instruction {
-            'U' => self.y = self.y.saturating_sub(1),
-            'D' => self.y = cmp::min(self.height - 1, self.y + 1),
-            'L' => self.x = self.x.saturating_sub(1),
-            'R' => self.x = cmp::min(self.width - 1, self.x + 1),
+            'U' => self.y = self.maybe_new_y(self.y.saturating_sub(1)),
+            'D' => self.y = self.maybe_new_y(cmp::min(self.height - 1, self.y + 1)),
+            'L' => self.x = self.maybe_new_x(self.x.saturating_sub(1)),
+            'R' => self.x = self.maybe_new_x(cmp::min(self.width - 1, self.x + 1)),
             other => panic!("Don't know how to move ({})!", other),
         }
         println!("({}, {}) = {}", self.x, self.y, self.current_value());
+    }
+
+    fn maybe_new_y(&self, candidate: usize) -> usize {
+        if self.layout[candidate][self.x] != ' ' {
+            candidate
+        } else {
+            self.y
+        }
+    }
+
+    fn maybe_new_x(&self, candidate: usize) -> usize {
+        if self.layout[self.y][candidate] != ' ' {
+            candidate
+        } else {
+            self.x
+        }
     }
 
     fn current_value(&self) -> char {
@@ -116,5 +132,36 @@ mod test {
         let input = "ULL\nRRDDD\nLURDL\nUUUUD\n";
         let answer = puzzle(&mut keypad, input);
         assert_eq!(String::from("1985"), answer);
+    }
+
+    #[test]
+    fn irregularly_shaped_board() {
+        let keypad_input = [
+            "  1  ",
+            " 234 ",
+            "56789",
+            " ABC ",
+            "  D  ",
+        ].join("\n");
+        let mut keypad = Keypad::new(&keypad_input);
+
+        keypad.move_a_key('U');
+
+        assert_eq!(keypad.current_value(), '5');
+    }
+
+    #[test]
+    fn overall_irregular_puzzle() {
+        let keypad_input = [
+            "  1  ",
+            " 234 ",
+            "56789",
+            " ABC ",
+            "  D  ",
+        ].join("\n");
+        let mut keypad = Keypad::new(&keypad_input);
+        let input = "ULL\nRRDDD\nLURDL\nUUUUD\n";
+        let answer = puzzle(&mut keypad, input);
+        assert_eq!(String::from("5DB3"), answer);
     }
 }
