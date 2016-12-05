@@ -11,6 +11,12 @@ pub struct Point {
     y: i32,
 }
 
+impl Point {
+    fn distance_to_origin(&self) -> u32 {
+        (self.x.abs() + self.y.abs()) as u32
+    }
+}
+
 pub fn distance(input: &str) -> u32 {
     let mut location = Point { x: 0, y: 0 };
     let mut direction = Direction::North;
@@ -33,7 +39,7 @@ pub fn distance(input: &str) -> u32 {
         }
         println!("Location: ({}, {})", location.x, location.y);
     }
-    (location.x.abs() + location.y.abs()) as u32
+    location.distance_to_origin()
 }
 
 pub fn turn(initial_direction: Direction, turn_command: &str) -> Direction {
