@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 #[derive(PartialEq, Debug)]
 pub enum Direction {
     North,
@@ -6,6 +8,7 @@ pub enum Direction {
     West,
 }
 
+#[derive(Hash, PartialEq, Eq, Copy, Clone)]
 pub struct Point {
     x: i32,
     y: i32,
@@ -18,6 +21,8 @@ impl Point {
 }
 
 pub fn distance(input: &str) -> u32 {
+    let mut visited_locations = HashSet::new();
+
     let mut location = Point { x: 0, y: 0 };
     let mut direction = Direction::North;
 
@@ -37,9 +42,15 @@ pub fn distance(input: &str) -> u32 {
             Direction::South => location.y -= num_blocks,
             Direction::West  => location.x -= num_blocks,
         }
+
+        if visited_locations.contains(&location) {
+            return location.distance_to_origin();
+        } else {
+            visited_locations.insert(location);
+        }
         println!("Location: ({}, {})", location.x, location.y);
     }
-    location.distance_to_origin()
+    panic!("No location visited twice.");
 }
 
 pub fn turn(initial_direction: Direction, turn_command: &str) -> Direction {
@@ -67,23 +78,8 @@ mod test {
     use super::*;
 
     #[test]
-    fn r1_is_one() {
-        assert_eq!(distance("R1"), 1);
-    }
-
-    #[test]
-    fn r1_r1_is_two() {
-        assert_eq!(distance("R1, R1"), 2);
-    }
-
-    #[test]
-    fn something_more() {
-        assert_eq!(distance("R2, L5, L4, L5, R4"), 6);
-    }
-
-    #[test]
-    fn r10_is_ten() {
-        assert_eq!(distance("R10"), 10);
+    fn hq_is_first_location_visited_twice() {
+        assert_eq!(distance("R2, L1, L1, L1, L1, R5"), 2);
     }
 
     #[test]
@@ -111,4 +107,6 @@ mod test {
         dir = turn(dir, "R");
         assert_eq!(dir, Direction::North);
     }
+
+
 }
