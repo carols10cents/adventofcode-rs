@@ -19,14 +19,14 @@ impl Room {
 -
 (?P<sector_id>[0-9]+)
 \[(?P<checksum>[a-z]{5})\]
-").unwrap();
+").expect("Regex is invalid");
 
-        let caps = regex.captures(description).unwrap();
+        let caps = regex.captures(description).expect("Can't capture");
 
         Room {
-            name: caps.name("name").unwrap().to_string(),
-            sector_id: caps.name("sector_id").unwrap().parse().unwrap(),
-            checksum: caps.name("checksum").unwrap().to_string(),
+            name: caps.name("name").expect("No name").to_string(),
+            sector_id: caps.name("sector_id").expect("No sector id").parse().expect("Can't parse"),
+            checksum: caps.name("checksum").expect("No checksum").to_string(),
         }
     }
 }
