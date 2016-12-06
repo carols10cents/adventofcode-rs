@@ -29,13 +29,36 @@ pub fn next_interesting_md5(door_id: &str, mut index: u32) -> (u32, char) {
     }
 }
 
+pub fn starts_with_five_zeroes(door_id: &str, mut index: u32) -> bool {
+    let candidate = format!("{}{}", door_id, index);
+
+    println!("candidate = ({})", candidate);
+
+    let mut digest = String::new();
+    for b in &md5::compute(candidate.as_bytes())[..] {
+        digest.push_str(&format!("{:02x}", b));
+    }
+
+    println!("digest = {:?}", digest);
+
+    println!("starts_with = {:?}", "00000");
+
+    digest.starts_with("00000")
+
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
-    fn once() {
-        assert_eq!(next_interesting_md5("abc", 0), (3231929, '1'));
+    fn check_hashing_is_working() {
+        assert!(starts_with_five_zeroes("abc", 3231929));
     }
+
+    // #[test]
+    // fn once() {
+    //     assert_eq!(next_interesting_md5("abc", 0), (3231929, '1'));
+    // }
 
 }
