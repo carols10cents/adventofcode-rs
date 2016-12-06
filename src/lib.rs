@@ -1,18 +1,32 @@
+use std::collections::HashSet;
+
 extern crate md5;
 
 pub fn puzzle(door_id: &str) -> String {
     let door_id = door_id.trim();
 
-    let mut answer = String::new();
+    let mut seen_indices = HashSet::new();
+    let mut answer = vec![' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];
     let mut index = 0;
 
-    for i in 0..8 {
+    while seen_indices.len() < 8 {
         let (new_index, char_index, next_char) = next_interesting_md5(door_id, index);
         index = new_index + 1;
-        answer.push(next_char);
-        println!("found {} char: {}", i + 1, next_char);
+
+        if answer[char_index] == ' ' {
+            answer[char_index] = next_char;
+            seen_indices.insert(char_index);
+
+            println!("found {} char, answer[{}] = {}", seen_indices.len(), char_index, next_char);
+            println!("answer is now {:?}", answer);
+        }
     }
-    answer
+
+    let mut ans_str = String::new();
+    for c in answer {
+        ans_str.push(c);
+    }
+    ans_str
 }
 
 pub fn next_interesting_md5(door_id: &str, mut index: u32) -> (u32, usize, char) {
@@ -52,7 +66,7 @@ pub fn next_interesting_md5(door_id: &str, mut index: u32) -> (u32, usize, char)
 
 pub fn is_valid_index(candidate: char) -> bool {
     match candidate {
-        '0'...'9' => true,
+        '0'...'7' => true,
         _ => false
     }
 }
@@ -61,14 +75,21 @@ pub fn is_valid_index(candidate: char) -> bool {
 mod test {
     use super::*;
 
-    #[test]
-    fn once() {
-        assert_eq!(next_interesting_md5("abc", 0), (3231929, 1, '5'));
-    }
+    // #[test]
+    // fn once() {
+    //     assert_eq!(next_interesting_md5("abc", 0), (3231929, 1, '5'));
+    // }
 
     #[test]
     fn valid_index() {
-        assert!(is_valid_index('9'));
+        assert!( ! is_valid_index('9') );
+        assert!( ! is_valid_index('8') );
+        assert!(is_valid_index('7'));
+    }
+
+    #[test]
+    fn sample() {
+        assert_eq!(puzzle("abc"), String::from("05ace8e3"));
     }
 
 }
