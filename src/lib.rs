@@ -4,7 +4,7 @@ pub fn puzzle(input: &str) -> String {
     String::from("no")
 }
 
-struct Column {
+pub struct Column {
     freqs: HashMap<char, u32>,
 }
 
@@ -15,15 +15,16 @@ impl Column {
     }
 
     fn most_common_char(&self) -> char {
-        let mut f: Vec<char, u32> = self.freqs.iter().collect();
+        let mut f: Vec<(&char, &u32)> = self.freqs.iter().collect();
         f.sort_by(|a, b| b.1.cmp(&a.1));
-        f[0]
+        *f[0].0
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::collections::HashMap;
 
     #[test]
     fn most_common_char_seen_in_column() {
