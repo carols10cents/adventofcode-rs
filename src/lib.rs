@@ -18,7 +18,7 @@ pub fn puzzle(input: &str) -> String {
 
     let mut answer = String::new();
     for col in columns {
-        answer.push(col.most_common_char())
+        answer.push(col.least_common_char())
     }
     answer
 }
@@ -33,9 +33,9 @@ impl Column {
         *count += 1;
     }
 
-    fn most_common_char(&self) -> char {
+    fn least_common_char(&self) -> char {
         let mut f: Vec<(&char, &u32)> = self.freqs.iter().collect();
-        f.sort_by(|a, b| b.1.cmp(&a.1));
+        f.sort_by(|a, b| a.1.cmp(&b.1));
         *f[0].0
     }
 }
@@ -46,12 +46,12 @@ mod test {
     use std::collections::HashMap;
 
     #[test]
-    fn most_common_char_seen_in_column() {
+    fn least_common_char_seen_in_column() {
         let mut c = Column { freqs: HashMap::new() };
         c.add_char('a');
         c.add_char('b');
         c.add_char('a');
-        assert_eq!(c.most_common_char(), 'a');
+        assert_eq!(c.least_common_char(), 'b');
     }
 
     #[test]
@@ -73,6 +73,6 @@ vntsnd
 vrdear
 dvrsen
 enarar";
-        assert_eq!(puzzle(input), String::from("easter"));
+        assert_eq!(puzzle(input), String::from("advent"));
     }
 }
