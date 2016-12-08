@@ -4,7 +4,25 @@ pub fn puzzle(input: &str) -> u32 {
 }
 
 pub fn supports_tls(candidate: &str) -> bool {
-    false
+    let mut start_index = 0;
+    let end_index = candidate.len();
+
+    let mut abba_outside = false;
+
+    while let Some((i, c)) = candidate.match_indices(|c| c == '[' || c == ']').next() {
+        if c == "[" {
+            abba_outside = abba_outside || contains_abba(&candidate[start_index..i]);
+        } else {
+            if contains_abba(&candidate[start_index..i]) {
+                return false;
+            }
+        }
+        start_index = i + 1;
+    }
+
+    abba_outside = abba_outside || contains_abba(&candidate[start_index..end_index]);
+
+    abba_outside
 }
 
 pub fn contains_abba(candidate: &str) -> bool {
