@@ -34,6 +34,15 @@ impl Screen {
             self.display[i][col_index] = col[from_index];
         }
     }
+
+    pub fn rotate_row(&mut self, row_index: usize, how_many: usize) {
+        let row = self.display[row_index].clone();
+
+        for i in 0..row.len() {
+            let from_index = (i + row.len() - how_many) % row.len();
+            self.display[row_index][i] = row[from_index];
+        }
+    }
 }
 
 impl fmt::Display for Screen {
@@ -74,4 +83,12 @@ mod test {
         assert_eq!(s.to_string(), "#.#....\n###....\n.#.....\n");
     }
 
+    #[test]
+    fn rotate_row() {
+        let mut s = Screen::new(7, 3);
+        s.rect(3, 2);
+        s.rotate_column(1, 1);
+        s.rotate_row(0, 4);
+        assert_eq!(s.to_string(), "....#.#\n###....\n.#.....\n");
+    }
 }
