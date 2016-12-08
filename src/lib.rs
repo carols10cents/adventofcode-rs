@@ -1,6 +1,12 @@
 
 pub fn puzzle(input: &str) -> u32 {
-    0
+    let mut total = 0;
+    for line in input.lines() {
+        if supports_tls(line) {
+            total += 1;
+        }
+    }
+    total
 }
 
 pub fn supports_tls(candidate: &str) -> bool {
