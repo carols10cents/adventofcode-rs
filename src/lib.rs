@@ -56,7 +56,50 @@ pub fn contains_abba(candidate: &str) -> bool {
 }
 
 pub fn supports_ssl(candidate: &str) -> bool {
+    let mut start_index = 0;
+    let end_index = candidate.len();
+
+    let mut potential_abas: Vec<&str> = vec![];
+    let mut potential_babs = vec![];
+
+    for (i, c) in candidate.match_indices(|c| c == '[' || c == ']') {
+        let mut f = find_abas(&candidate[start_index..i]);
+        if c == "[" {
+            potential_abas.append(&mut f);
+        } else {
+            potential_babs.append(&mut f);
+        }
+        start_index = i + 1;
+    }
+    let mut f = find_abas(&candidate[start_index..end_index]);
+    potential_abas.append(&mut f);
+
+    for aba in potential_abas {
+        let mut by_chars = aba.chars();
+        let first = by_chars.next().expect("no first char");
+        let second = by_chars.next().expect("no second char");
+        let bab = format!("{}{}{}", second, first, second);
+        if potential_babs.contains(&&bab[..]) {
+            return true;
+        }
+    }
     false
+}
+
+fn find_abas(s: &str) -> Vec<&str> {
+   let mut abas: Vec<&str> = vec![];
+
+   let by_chars: Vec<char> = s.chars().collect();
+
+   for (i, &c) in by_chars.iter().enumerate() {
+       if i + 2 < by_chars.len() &&
+           c != by_chars[i + 1] &&
+           by_chars[i + 2] == c {
+           abas.push(&s[i..i+3]);
+       }
+   }
+
+   abas
 }
 
 #[cfg(test)]
