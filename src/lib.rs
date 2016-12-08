@@ -43,6 +43,12 @@ impl Screen {
             self.display[row_index][i] = row[from_index];
         }
     }
+
+    pub fn num_lit_pixels(&self) -> usize {
+        self.display.iter().map(|row| {
+            row.iter().filter(|&&c| c == '#').count()
+        }).sum()
+    }
 }
 
 impl fmt::Display for Screen {
@@ -90,5 +96,14 @@ mod test {
         s.rotate_column(1, 1);
         s.rotate_row(0, 4);
         assert_eq!(s.to_string(), "....#.#\n###....\n.#.....\n");
+    }
+
+    #[test]
+    fn count_pixels() {
+        let mut s = Screen::new(7, 3);
+        s.rect(3, 2);
+        s.rotate_column(1, 1);
+        s.rotate_row(0, 4);
+        assert_eq!(s.num_lit_pixels(), 6);
     }
 }
