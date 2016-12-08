@@ -7,7 +7,8 @@ pub fn contains_abba(candidate: &str) -> bool {
     let by_chars: Vec<char> = candidate.chars().collect();
 
     for (i, &c) in by_chars.iter().enumerate() {
-        if c != by_chars[i + 1] &&
+        if i + 3 < by_chars.len() &&
+            c != by_chars[i + 1] &&
             by_chars[i + 1] == by_chars[i + 2] &&
             by_chars[i + 3] == c {
             return true
