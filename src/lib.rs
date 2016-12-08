@@ -4,23 +4,33 @@ pub fn puzzle(input: &str) -> u32 {
 }
 
 pub fn supports_tls(candidate: &str) -> bool {
+    println!("considering {}", candidate);
     let mut start_index = 0;
     let end_index = candidate.len();
 
     let mut abba_outside = false;
 
-    while let Some((i, c)) = candidate.match_indices(|c| c == '[' || c == ']').next() {
+    for (i, c) in candidate.match_indices(|c| c == '[' || c == ']') {
+        println!("looking at slice ending in {}, [{}..{}]", c, start_index, i);
+        println!("slice is {}", &candidate[start_index..i]);
+        println!("abba_outside = {}", abba_outside);
         if c == "[" {
             abba_outside = abba_outside || contains_abba(&candidate[start_index..i]);
+            println!("after looking, abba_outside = {}", abba_outside);
         } else {
             if contains_abba(&candidate[start_index..i]) {
+                println!("womp womp, found an abba inside");
                 return false;
             }
         }
         start_index = i + 1;
+        println!("start_index = {}", start_index);
     }
+    println!("looking at final slice [{}..{}]: '{}", start_index, end_index, &candidate[start_index..end_index]);
 
     abba_outside = abba_outside || contains_abba(&candidate[start_index..end_index]);
+
+    println!("final answer: {}", abba_outside);
 
     abba_outside
 }
