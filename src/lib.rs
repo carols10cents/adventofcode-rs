@@ -2,7 +2,7 @@
 pub fn puzzle(input: &str) -> u32 {
     let mut total = 0;
     for line in input.lines() {
-        if supports_tls(line) {
+        if supports_ssl(line) {
             total += 1;
         }
     }
