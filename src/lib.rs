@@ -55,9 +55,26 @@ pub fn contains_abba(candidate: &str) -> bool {
     false
 }
 
+pub fn supports_ssl(candidate: &str) -> bool {
+    false
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn does_support_ssl() {
+        assert!(supports_ssl("aba[bab]xyz"));
+        assert!(supports_ssl("aaa[kek]eke"));
+        assert!(supports_ssl("zazbz[bzb]cdb"));
+        assert!(supports_ssl("zazaaabz[bzb]cdb[foo]zbz"));
+    }
+
+    #[test]
+    fn does_not_support_ssl() {
+        assert!( ! supports_ssl("xyx[xyx]xyx") );
+    }
 
     #[test]
     fn does_support_tls() {
