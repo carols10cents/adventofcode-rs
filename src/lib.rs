@@ -1,8 +1,44 @@
 use std::fmt;
 use std::iter::FromIterator;
 
-pub fn puzzle(input: &str) -> u32 {
-    0
+pub fn puzzle(input: &str) -> usize {
+    let mut screen = Screen::new(50, 6);
+    for line in input.lines() {
+        let commands: Vec<_> = line.split_whitespace().collect();
+
+        if commands[0] == "rect" {
+
+            let mut dims = commands[1].split('x');
+            screen.rect(
+                dims.next().expect("no rect width")
+                    .parse().expect("can't parse rect width"),
+                dims.next().expect("no rect height")
+                    .parse().expect("can't parse rect height"),
+            );
+
+        } else if commands[1] == "row" {
+
+            let row_num = commands[2].split('=')
+                                     .last()
+                                     .expect("no row num")
+                                     .parse().expect("can't parse row num");
+            let how_many = commands[4].parse()
+                                      .expect("can't parse how many for row");
+            screen.rotate_row(row_num, how_many);
+
+        } else if commands[1] == "column" {
+
+            let col_num = commands[2].split('=')
+                                     .last()
+                                     .expect("no col num")
+                                     .parse().expect("can't parse col num");
+            let how_many = commands[4].parse()
+                                      .expect("can't parse how many for col");
+            screen.rotate_column(col_num, how_many);
+
+        }
+    }
+    screen.num_lit_pixels()
 }
 
 #[derive(Debug, PartialEq)]
