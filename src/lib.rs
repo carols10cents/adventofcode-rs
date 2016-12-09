@@ -5,7 +5,7 @@ pub fn puzzle(input: &str) -> usize {
 
 pub fn decompressed_length(input: &str) -> usize {
     let mut chars = input.chars();
-    let mut decompressed_length = 0;
+    let mut answer = 0;
 
     while let Some(c) = chars.next() {
         if c == '(' {
@@ -26,16 +26,18 @@ pub fn decompressed_length(input: &str) -> usize {
             }
             let num_times: usize = num_times.parse().expect("couldn't parse number of times");
 
+            let mut further_decompress = String::new();
             for _ in 0..num_chars {
-                chars.next();
+                further_decompress.push(chars.next().expect("no next chars"));
             }
-            decompressed_length += num_chars * num_times;
+            let further_decompress_length = decompressed_length(&further_decompress);
+            answer += further_decompress_length * num_times;
         }
         else {
-            decompressed_length += 1;
+            answer += 1;
         }
     }
-    decompressed_length
+    answer
 }
 
 #[cfg(test)]
