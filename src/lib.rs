@@ -38,6 +38,7 @@ pub fn puzzle(input: &str) -> usize {
 
         }
     }
+    println!("{}", screen);
     screen.num_lit_pixels()
 }
 
