@@ -3,14 +3,21 @@ pub fn puzzle(input: &str) -> usize {
     0
 }
 
+#[derive(Clone, PartialEq)]
+pub enum WhichChip {
+    Low,
+    High,
+}
+
 pub struct Bot {
     chip1: Option<usize>,
     chip2: Option<usize>,
+    commands: Vec<(usize, WhichChip)>
 }
 
 impl Bot {
     pub fn new() -> Bot {
-        Bot { chip1: None, chip2: None }
+        Bot { chip1: None, chip2: None, commands: vec![], }
     }
 
     pub fn has_two_chips(&self) -> bool {
@@ -28,6 +35,10 @@ impl Bot {
         } else {
             panic!("Cannot hold more than two chips");
         }
+    }
+
+    pub fn receive_command(&mut self, which_bot: usize, which_chip: WhichChip) {
+        self.commands.push((which_bot, which_chip));
     }
 }
 
