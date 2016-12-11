@@ -2,8 +2,22 @@
 pub fn puzzle(input: &str) -> u32 {
     let initial_world_state = WorldState {
         steps: 0,
-        elevator_floor: 0,
-        // TODO: actually specify initial state
+        building: BuildingState {
+            elevator_floor: 0,
+            floors: [
+                vec![
+                    Component::Microchip(Element::Hydrogen),
+                    Component::Microchip(Element::Lithium),
+                ],
+                vec![
+                    Component::Generator(Element::Hydrogen),
+                ],
+                vec![
+                    Component::Generator(Element::Lithium),
+                ],
+                vec![],
+            ],
+        }
     };
     let mut queue = vec![initial_world_state];
     while !queue.is_empty() {
@@ -21,7 +35,7 @@ pub fn puzzle(input: &str) -> u32 {
 
 pub struct WorldState {
     steps: u32,
-    elevator_floor: usize,
+    building: BuildingState,
 }
 
 impl WorldState {
@@ -34,6 +48,21 @@ impl WorldState {
         // TODO: actually determine valid next moves
         vec![]
     }
+}
+
+pub enum Component {
+    Microchip(Element),
+    Generator(Element),
+}
+
+pub enum Element {
+    Hydrogen,
+    Lithium,
+}
+
+pub struct BuildingState {
+    elevator_floor: usize,
+    floors: [Vec<Component>; 4],
 }
 
 #[cfg(test)]
