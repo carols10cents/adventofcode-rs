@@ -6,12 +6,10 @@ pub fn puzzle(input: &str) -> usize {
     for line in input.lines() {
         br.exec_command(line);
     }
-    println!("output 0: {:?}", br.outputs.get(&0));
-    println!("output 1: {:?}", br.outputs.get(&1));
-    println!("output 2: {:?}", br.outputs.get(&2));
 
-
-    0
+    br.outputs.get(&0).unwrap().first().unwrap() *
+        br.outputs.get(&1).unwrap().first().unwrap() *
+        br.outputs.get(&2).unwrap().first().unwrap()
 }
 
 #[derive(Debug)]
