@@ -9,8 +9,8 @@ pub enum BotOrOutput {
     Output
 }
 
-impl From<&str> for BotOrOutput {
-    fn from(s: &str) -> BotOrOutput {
+impl<'a> From<&'a str> for BotOrOutput {
+    fn from(s: &'a str) -> BotOrOutput {
         match s {
             "bot" => BotOrOutput::Bot,
             "output" => BotOrOutput::Output,
@@ -74,22 +74,37 @@ impl BotCommandCenter {
     }
 
     pub fn value_to_output(&mut self, output_key: usize, value: usize) {
-        println!("COMMAND CTR sending value {} to output {}", value, bot_key);
+        println!("COMMAND CTR sending value {} to output {}", value, output_key);
         self.outputs
             .entry(output_key)
             .or_insert(vec![])
             .push(value);
     }
 
+    pub fn get_next_bot_to_check(&mut self) -> usize {
+        let check_bot_key = self.bots_to_check.iter().next().unwrap();
+        *check_bot_key
+    }
+
+    pub fn bot_has_two_chips(&mut self, check_bot_key: usize) -> bool {
+        let bot = self.bots.entry(check_bot_key)
+                           .or_insert(Bot::new(check_bot_key));
+        bot.has_two_chips()
+    }
+
+    pub fn bot_low_high(&mut self, check_bot_key: usize) -> (usize, usize) {
+        let bot = self.bots.entry(check_bot_key)
+                           .or_insert(Bot::new(check_bot_key));
+        bot.low_high()
+    }
+
     pub fn process_bots(&mut self) {
         while !self.bots_to_check.is_empty() {
-            let check_bot_key = self.bots_to_check.iter().next().unwrap();
-            let bot = self.bots.entry(check_bot_key)
-                               .or_insert(Bot::new(bot_key));
-            if bot.has_two_chips() {
-                let command = self.saved_commands.remove(check_bot_key)
+            let check_bot_key = self.get_next_bot_to_check();
+            if self.bot_has_two_chips(check_bot_key) {
+                let command = self.saved_commands.remove(&check_bot_key)
                     .expect("no saved command for a bot with two chips");
-                let (low_value, high_value) = bot.low_high();
+                let (low_value, high_value) = self.bot_low_high(check_bot_key);
 
                 match command.low_value_type {
                     BotOrOutput::Bot => self.value_to_bot(
@@ -235,4 +250,5 @@ mod test {
             br.outputs.get(&2),
             Some(&vec![3])
         );
+    }
 }
