@@ -53,6 +53,7 @@ impl WorldState {
     }
 }
 
+#[derive(PartialEq, Copy, Clone)]
 pub enum Component {
     Microchip(Element),
     Generator(Element),
@@ -61,8 +62,16 @@ pub enum Component {
 impl Component {
     fn is_fried(&self, others: &Vec<Component>) -> bool {
         match *self {
-            // Generators can't be fried, just microchips
-            Component::Generator(_) => return false,
+            Component::Generator(my_element) => {
+                // There's microchip(s) that are not my element
+                // and no generator that is that microchip's element
+                (*others).iter().any(|&c|
+                    match c {
+                        Component::Microchip(e) if e != my_element && !(*others).contains(&Component::Generator(e)) => true,
+                        _ => false,
+                    }
+                )
+            },
             Component::Microchip(my_element) => {
                 // There's some generator that is not my element
                 (*others).iter().find(|&c| {
@@ -235,4 +244,53 @@ mod test {
             )
         )
     }
+
+    #[test]
+    fn generator_with_a_microchip_without_its_generator_fried() {
+        assert!(
+            Component::Generator(Element::Hydrogen).is_fried(
+                &vec![Component::Microchip(Element::Lithium)]
+            )
+        )
+    }
+
+    #[test]
+    fn generator_with_a_generator_not_fried() {
+        assert!(
+            ! Component::Generator(Element::Hydrogen).is_fried(
+                &vec![Component::Generator(Element::Lithium)]
+            )
+        )
+    }
+
+    #[test]
+    fn generator_with_its_microchip_not_fried() {
+        assert!(
+            ! Component::Generator(Element::Hydrogen).is_fried(
+                &vec![Component::Microchip(Element::Hydrogen)]
+            )
+        )
+    }
+
+    #[test]
+    fn generator_with_itself_not_fried() {
+        assert!(
+            ! Component::Generator(Element::Hydrogen).is_fried(
+                &vec![Component::Generator(Element::Hydrogen)]
+            )
+        )
+    }
+
+    #[test]
+    fn generator_with_a_microchip_with_its_generator_not_fried() {
+        assert!(
+            ! Component::Generator(Element::Hydrogen).is_fried(
+                &vec![
+                    Component::Generator(Element::Lithium),
+                    Component::Microchip(Element::Lithium),
+                ]
+            )
+        )
+    }
+
 }
