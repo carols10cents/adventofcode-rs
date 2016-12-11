@@ -44,8 +44,12 @@ impl WorldState {
     }
 
     pub fn next_moves(&self) -> Vec<WorldState> {
-        // TODO: actually determine valid next moves
-        vec![]
+        self.building.next_moves().into_iter().map(|b| {
+            WorldState {
+                steps: self.steps + 1,
+                building: b,
+            }
+        }).collect()
     }
 }
 
@@ -69,6 +73,11 @@ impl BuildingState {
         self.floors[0].is_empty() &&
             self.floors[1].is_empty() &&
             self.floors[2].is_empty()
+    }
+
+    pub fn next_moves(&self) -> Vec<BuildingState> {
+        // TODO: actually determine valid next moves
+        vec![]
     }
 }
 
