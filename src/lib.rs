@@ -103,6 +103,20 @@ pub struct BuildingState {
     floors: [Vec<Component>; 4],
 }
 
+impl Clone for BuildingState {
+    fn clone(&self) -> BuildingState {
+        BuildingState {
+            elevator_floor: self.elevator_floor,
+            floors: [
+                self.floors[0].clone(),
+                self.floors[1].clone(),
+                self.floors[2].clone(),
+                self.floors[3].clone(),
+            ]
+        }
+    }
+}
+
 impl BuildingState {
     pub fn in_end_state(&self) -> bool {
         self.floors[0].is_empty() &&
@@ -141,8 +155,21 @@ impl BuildingState {
     }
 
     pub fn next_moves(&self) -> Vec<BuildingState> {
-        // TODO: actually determine valid next moves
-        vec![]
+        let mut valid_next_moves = vec![];
+        for next_floor in self.next_floors() {
+            for combo in self.elevator_combos() {
+                let mut bs = (*self).clone();
+                bs.floors[self.elevator_floor].retain(|c| {
+                   !combo.contains(c)
+                });
+                bs.floors[next_floor].extend_from_slice(&combo);
+                bs.elevator_floor = next_floor;
+                if !bs.has_fried_chips() {
+                    valid_next_moves.push(bs);
+                }
+            }
+        }
+        valid_next_moves
     }
 
     pub fn has_fried_chips(&self) -> bool {
