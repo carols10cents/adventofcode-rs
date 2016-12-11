@@ -178,4 +178,61 @@ mod test {
             )
         )
     }
+
+    #[test]
+    fn microchip_alone_not_fried() {
+        assert!(
+            ! Component::Microchip(Element::Hydrogen).is_fried(
+                &vec![]
+            )
+        )
+    }
+
+    #[test]
+    fn microchip_with_itself_not_fried() {
+        assert!(
+            ! Component::Microchip(Element::Hydrogen).is_fried(
+                &vec![Component::Microchip(Element::Hydrogen)]
+            )
+        )
+    }
+
+    #[test]
+    fn two_generators_not_fried() {
+        assert!(
+            ! Component::Generator(Element::Hydrogen).is_fried(
+                &vec![Component::Generator(Element::Lithium)]
+            )
+        )
+    }
+
+    #[test]
+    fn microchip_and_matching_generator_not_fried() {
+        assert!(
+            ! Component::Microchip(Element::Hydrogen).is_fried(
+                &vec![Component::Generator(Element::Hydrogen)]
+            )
+        )
+    }
+
+    #[test]
+    fn microchip_attached_to_matching_generator_not_fried_by_other_generator() {
+        assert!(
+            ! Component::Microchip(Element::Hydrogen).is_fried(
+                &vec![
+                    Component::Generator(Element::Lithium),
+                    Component::Generator(Element::Hydrogen),
+                ]
+            )
+        )
+    }
+
+    #[test]
+    fn microchip_without_its_generator_with_another_generator_fried() {
+        assert!(
+            Component::Microchip(Element::Hydrogen).is_fried(
+                &vec![Component::Generator(Element::Lithium)]
+            )
+        )
+    }
 }
