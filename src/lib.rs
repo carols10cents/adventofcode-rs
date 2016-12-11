@@ -1,38 +1,51 @@
 
 pub fn puzzle(input: &str) -> u32 {
+    let initial_building_state = BuildingState {
+        elevator_floor: 0,
+        floors: [
+            vec![
+                Component::Microchip(Element::Hydrogen),
+                Component::Microchip(Element::Lithium),
+            ],
+            vec![
+                Component::Generator(Element::Hydrogen),
+            ],
+            vec![
+                Component::Generator(Element::Lithium),
+            ],
+            vec![],
+        ],
+    };
     let initial_world_state = WorldState {
         steps: 0,
-        building: BuildingState {
-            elevator_floor: 0,
-            floors: [
-                vec![
-                    Component::Microchip(Element::Hydrogen),
-                    Component::Microchip(Element::Lithium),
-                ],
-                vec![
-                    Component::Generator(Element::Hydrogen),
-                ],
-                vec![
-                    Component::Generator(Element::Lithium),
-                ],
-                vec![],
-            ],
-        }
+        building: initial_building_state.clone()
     };
     let mut queue = vec![initial_world_state];
+    let mut seen = vec![initial_building_state];
+
     while !queue.is_empty() {
         let world = queue.remove(0);
+
+        println!("queue: {}", queue.len());
+        println!("considering {:?}", world);
+
+        seen.push(world.building.clone());
+
+        if world.steps == 12 {
+            panic!("too far!");
+        }
         if world.in_end_state() {
             return world.steps;
         }
 
-        let mut valid_next_moves = world.next_moves();
+        let mut valid_next_moves = world.next_moves(&seen);
         queue.append(&mut valid_next_moves);
     }
 
     panic!("Exhausted all possible moves without finding end condition!");
 }
 
+#[derive(Debug)]
 pub struct WorldState {
     steps: u32,
     building: BuildingState,
@@ -43,8 +56,8 @@ impl WorldState {
         self.building.in_end_state()
     }
 
-    pub fn next_moves(&self) -> Vec<WorldState> {
-        self.building.next_moves().into_iter().map(|b| {
+    pub fn next_moves(&self, seen: &Vec<BuildingState>) -> Vec<WorldState> {
+        self.building.next_moves(seen).into_iter().map(|b| {
             WorldState {
                 steps: self.steps + 1,
                 building: b,
@@ -53,7 +66,7 @@ impl WorldState {
     }
 }
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub enum Component {
     Microchip(Element),
     Generator(Element),
@@ -92,12 +105,13 @@ impl Component {
     }
 }
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub enum Element {
     Hydrogen,
     Lithium,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct BuildingState {
     elevator_floor: usize,
     floors: [Vec<Component>; 4],
@@ -154,7 +168,7 @@ impl BuildingState {
         result
     }
 
-    pub fn next_moves(&self) -> Vec<BuildingState> {
+    pub fn next_moves(&self, seen: &Vec<BuildingState>) -> Vec<BuildingState> {
         let mut valid_next_moves = vec![];
         for next_floor in self.next_floors() {
             for combo in self.elevator_combos() {
@@ -164,7 +178,7 @@ impl BuildingState {
                 });
                 bs.floors[next_floor].extend_from_slice(&combo);
                 bs.elevator_floor = next_floor;
-                if !bs.has_fried_chips() {
+                if !bs.has_fried_chips() && !seen.contains(&bs) {
                     valid_next_moves.push(bs);
                 }
             }
