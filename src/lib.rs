@@ -48,6 +48,10 @@ impl Bot {
             self.chip2 = Some(chip);
             if let (Some(lo), Some(hi)) = (self.low, self.high) {
                 let return_commands = if self.chip1 < self.chip2 {
+                    if self.chip1 == Some(17) && self.chip2 == Some(61) {
+                        panic!("The bot you are looking for is {}", self.key);
+                    }
+
                     vec![
                         (
                             lo,
@@ -61,6 +65,10 @@ impl Bot {
                         ),
                     ]
                 } else {
+                    if self.chip2 == Some(17) && self.chip1 == Some(61) {
+                        panic!("The bot you are looking for is {}", self.key);
+                    }
+
                     vec![
                         (
                             lo,
