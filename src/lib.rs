@@ -6,6 +6,11 @@ pub fn puzzle(input: &str) -> usize {
     for line in input.lines() {
         br.exec_command(line);
     }
+    println!("output 0: {:?}", br.outputs.get(&0));
+    println!("output 1: {:?}", br.outputs.get(&1));
+    println!("output 2: {:?}", br.outputs.get(&2));
+
+
     0
 }
 
@@ -202,15 +207,9 @@ impl Bot {
             (Some(c1), Some(c2)) => {
                 if c1 < c2 {
                     println!("Bot {} found {} < {}", self.key, c1, c2);
-                    if c1 == 17 && c2 == 61 {
-                        panic!("The bot you are looking for is {}", self.key);
-                    }
                     (c1, c2)
                 } else {
                     println!("Bot {} found {} < {}", self.key, c2, c1);
-                    if c2 == 17 && c1 == 61 {
-                        panic!("The bot you are looking for is {}", self.key);
-                    }
                     (c2, c1)
                 }
             }
