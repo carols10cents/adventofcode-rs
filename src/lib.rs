@@ -8,13 +8,13 @@ pub fn puzzle(input: &str) -> usize {
 pub struct Bot {
     chip1: Option<usize>,
     chip2: Option<usize>,
-    low: usize,
-    high: usize,
+    low: Option<usize>,
+    high: Option<usize>,
 }
 
 impl Bot {
     pub fn new() -> Bot {
-        Bot { chip1: None, chip2: None, low: 0, high: 0 }
+        Bot { chip1: None, chip2: None, low: None, high: None }
     }
 
     pub fn has_two_chips(&self) -> bool {
@@ -35,8 +35,8 @@ impl Bot {
     }
 
     pub fn receive_command(&mut self, low_bot: usize, high_bot: usize) {
-        self.low = low_bot;
-        self.high = high_bot;
+        self.low = Some(low_bot);
+        self.high = Some(high_bot);
     }
 }
 
@@ -106,7 +106,7 @@ mod test {
         br.exec_command("value 5 goes to bot 2");
         assert_eq!(
             br.bots.get(&2),
-            Some(&Bot { chip1: Some(5), chip2: None, low: 0, high: 0 })
+            Some(&Bot { chip1: Some(5), chip2: None, low: None, high: None })
         );
     }
 
@@ -119,8 +119,8 @@ mod test {
             Some(&Bot {
                 chip1: None,
                 chip2: None,
-                low: 1,
-                high: 0,
+                low: Some(1),
+                high: Some(0),
             })
         );
     }
