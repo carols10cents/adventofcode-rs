@@ -40,8 +40,7 @@ pub struct WorldState {
 
 impl WorldState {
     pub fn in_end_state(&self) -> bool {
-        // TODO: actually check that everything is on the 4th floor
-        true
+        self.building.in_end_state()
     }
 
     pub fn next_moves(&self) -> Vec<WorldState> {
@@ -65,8 +64,62 @@ pub struct BuildingState {
     floors: [Vec<Component>; 4],
 }
 
+impl BuildingState {
+    pub fn in_end_state(&self) -> bool {
+        self.floors[0].is_empty() &&
+            self.floors[1].is_empty() &&
+            self.floors[2].is_empty()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
+    #[test]
+    fn not_in_end_state() {
+        let world_state = WorldState {
+            steps: 0,
+            building: BuildingState {
+                elevator_floor: 0,
+                floors: [
+                    vec![
+                        Component::Microchip(Element::Hydrogen),
+                        Component::Microchip(Element::Lithium),
+                    ],
+                    vec![
+                        Component::Generator(Element::Hydrogen),
+                    ],
+                    vec![
+                        Component::Generator(Element::Lithium),
+                    ],
+                    vec![],
+                ],
+            }
+        };
+        assert!( ! world_state.in_end_state() );
+    }
+
+    #[test]
+    fn in_end_state() {
+        let world_state = WorldState {
+            steps: 0,
+            building: BuildingState {
+                elevator_floor: 0,
+                floors: [
+                    vec![],
+                    vec![],
+                    vec![],
+                    vec![
+                        Component::Generator(Element::Hydrogen),
+                        Component::Microchip(Element::Hydrogen),
+                        Component::Microchip(Element::Lithium),
+                        Component::Generator(Element::Lithium),
+                    ],
+                ],
+            }
+        };
+
+        assert!(world_state.in_end_state());
+    }
 }
