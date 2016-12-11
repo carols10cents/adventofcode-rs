@@ -1,6 +1,11 @@
 use std::collections::HashMap;
 
 pub fn puzzle(input: &str) -> usize {
+    let mut br = BotCommandCenter::new();
+
+    for line in input.lines() {
+        br.exec_command(line);
+    }
     0
 }
 
@@ -63,6 +68,7 @@ impl BotCommandCenter {
                 pieces[10],
                 pieces[11].parse().expect("can't parse high key"),
             );
+            self.process_bots();
         }
     }
 
@@ -107,32 +113,36 @@ impl BotCommandCenter {
             println!("COMMAND CTR processing bot {}", check_bot_key);
             if self.bot_has_two_chips(check_bot_key) {
                 println!("COMMAND CTR found bot {} has two chips", check_bot_key);
-                let command = self.saved_commands.remove(&check_bot_key)
-                    .expect("no saved command for a bot with two chips");
-                println!("COMMAND CTR found command: {:?}", command);
-                let (low_value, high_value) = self.bot_low_high(check_bot_key);
-                println!("COMMAND CTR found low = {}, high = {}", low_value, high_value);
-                match command.low_value_type {
-                    BotOrOutput::Bot => self.value_to_bot(
-                        command.low_value_key,
-                        low_value
-                    ),
-                    BotOrOutput::Output => self.value_to_output(
-                        command.low_value_key,
-                        low_value
-                    ),
+
+                if let Some(command) = self.saved_commands.remove(&check_bot_key) {
+                    println!("COMMAND CTR found command: {:?}", command);
+                    let (low_value, high_value) = self.bot_low_high(check_bot_key);
+                    println!("COMMAND CTR found low = {}, high = {}", low_value, high_value);
+                    match command.low_value_type {
+                        BotOrOutput::Bot => self.value_to_bot(
+                            command.low_value_key,
+                            low_value
+                        ),
+                        BotOrOutput::Output => self.value_to_output(
+                            command.low_value_key,
+                            low_value
+                        ),
+                    }
+
+                    match command.high_value_type {
+                        BotOrOutput::Bot => self.value_to_bot(
+                            command.high_value_key,
+                            high_value
+                        ),
+                        BotOrOutput::Output => self.value_to_output(
+                            command.high_value_key,
+                            high_value
+                        ),
+                    }
+                } else {
+                    println!("COMMAND CTR found no saved command for bot {} that has two chips", check_bot_key);
                 }
 
-                match command.high_value_type {
-                    BotOrOutput::Bot => self.value_to_bot(
-                        command.high_value_key,
-                        high_value
-                    ),
-                    BotOrOutput::Output => self.value_to_output(
-                        command.high_value_key,
-                        high_value
-                    ),
-                }
             }
         }
         println!("COMMAND CTR bots_to_check is empty");
@@ -149,6 +159,8 @@ impl BotCommandCenter {
             high_value_key: high_key,
         };
         self.saved_commands.insert(bot_key, command);
+        self.bots_to_check.push(bot_key);
+        println!("COMMAND CTR bots to check = {:?}", self.bots_to_check);
     }
 }
 
@@ -189,8 +201,16 @@ impl Bot {
         let (low, high) = match (self.chip1, self.chip2) {
             (Some(c1), Some(c2)) => {
                 if c1 < c2 {
+                    println!("Bot {} found {} < {}", self.key, c1, c2);
+                    if c1 == 17 && c2 == 61 {
+                        panic!("The bot you are looking for is {}", self.key);
+                    }
                     (c1, c2)
                 } else {
+                    println!("Bot {} found {} < {}", self.key, c2, c1);
+                    if c2 == 17 && c1 == 61 {
+                        panic!("The bot you are looking for is {}", self.key);
+                    }
                     (c2, c1)
                 }
             }
