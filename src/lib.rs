@@ -110,6 +110,16 @@ impl BuildingState {
             self.floors[2].is_empty()
     }
 
+    pub fn next_floors(&self) -> Vec<usize> {
+        match self.elevator_floor {
+            0 => vec![1],
+            1 => vec![0, 2],
+            2 => vec![1, 3],
+            3 => vec![2],
+            other => panic!("How did you get on floor {}, elevator?", other),
+        }
+    }
+
     pub fn next_moves(&self) -> Vec<BuildingState> {
         // TODO: actually determine valid next moves
         vec![]
