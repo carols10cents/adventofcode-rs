@@ -5,7 +5,7 @@ pub fn puzzle(input: &str) -> usize {
         bots: HashMap::new(),
         output_bins: HashMap::new(),
     };
-
+    
     for line in input.lines() {
         br.exec_command(line);
     }
@@ -37,6 +37,13 @@ impl Bot {
             low: None, high: None,
             low_bot_or_output: None,
             high_bot_or_output: None,
+        }
+    }
+
+    pub fn has_two_chips(&self) -> bool {
+        match (self.chip1, self.chip2) {
+            (Some(_), Some(_)) => true,
+            _ => false,
         }
     }
 
@@ -183,6 +190,27 @@ impl BotRouter {
 mod test {
     use super::*;
     use std::collections::HashMap;
+
+    #[test]
+    fn new_bot_does_not_have_two_chips() {
+        let bot = Bot::new(0);
+        assert!( ! bot.has_two_chips() );
+    }
+
+    #[test]
+    fn bot_gets_a_chip_still_not_two() {
+        let mut bot = Bot::new(0);
+        bot.receive_chip(1);
+        assert!( ! bot.has_two_chips() );
+    }
+
+    #[test]
+    fn bot_gets_two_chips() {
+        let mut bot = Bot::new(0);
+        bot.receive_chip(1);
+        bot.receive_chip(4);
+        assert!(bot.has_two_chips());
+    }
 
     #[test]
     fn router_can_give_values() {
