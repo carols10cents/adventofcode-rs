@@ -12,6 +12,7 @@ pub enum BotOrOutput {
 
 #[derive(PartialEq, Debug)]
 pub struct Bot {
+    key: usize,
     chip1: Option<usize>,
     chip2: Option<usize>,
     low: Option<usize>,
@@ -21,8 +22,9 @@ pub struct Bot {
 }
 
 impl Bot {
-    pub fn new() -> Bot {
+    pub fn new(key: usize) -> Bot {
         Bot {
+            key: key,
             chip1: None, chip2: None,
             low: None, high: None,
             low_bot_or_output: None,
@@ -132,7 +134,7 @@ impl BotRouter {
     pub fn value_to_bot(&mut self, bot_key: usize, value: usize) {
         let return_commands = self.bots
                                   .entry(bot_key)
-                                  .or_insert(Bot::new())
+                                  .or_insert(Bot::new(bot_key))
                                   .receive_chip(value);
         for &(key, bot_or_output, chip_value) in return_commands.iter() {
             match bot_or_output {
@@ -149,7 +151,7 @@ impl BotRouter {
     pub fn command_to_bot(&mut self, bot_key: usize,
                           low_bot_or_output: &str, low_key: usize,
                           high_bot_or_output: &str, high_key: usize) {
-        let bot = self.bots.entry(bot_key).or_insert(Bot::new());
+        let bot = self.bots.entry(bot_key).or_insert(Bot::new(bot_key));
         bot.receive_command(
             low_bot_or_output,
             low_key,
@@ -166,20 +168,20 @@ mod test {
 
     #[test]
     fn new_bot_does_not_have_two_chips() {
-        let bot = Bot::new();
+        let bot = Bot::new(0);
         assert!( ! bot.has_two_chips() );
     }
 
     #[test]
     fn bot_gets_a_chip_still_not_two() {
-        let mut bot = Bot::new();
+        let mut bot = Bot::new(0);
         bot.receive_chip(1);
         assert!( ! bot.has_two_chips() );
     }
 
     #[test]
     fn bot_gets_two_chips() {
-        let mut bot = Bot::new();
+        let mut bot = Bot::new(0);
         bot.receive_chip(1);
         bot.receive_chip(4);
         assert!(bot.has_two_chips());
