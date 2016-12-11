@@ -24,11 +24,32 @@ impl Bot {
         }
     }
 
-    pub fn receive_chip(&mut self, chip: usize) {
+    pub fn receive_chip(&mut self, chip: usize) -> Vec<(usize, usize)> {
         if self.chip1.is_none() {
             self.chip1 = Some(chip);
+            vec![]
         } else if self.chip2.is_none() {
             self.chip2 = Some(chip);
+            if let (Some(lo), Some(hi)) = (self.low, self.high) {
+                let return_commands = if self.chip1 < self.chip2 {
+                    vec![
+                        (lo, self.chip1.unwrap()),
+                        (hi, self.chip2.unwrap()),
+                    ]
+                } else {
+                    vec![
+                        (lo, self.chip2.unwrap()),
+                        (hi, self.chip1.unwrap()),
+                    ]
+                };
+                self.chip1 = None;
+                self.chip2 = None;
+                self.low = None;
+                self.high = None;
+                return_commands
+            } else {
+                vec![]
+            }
         } else {
             panic!("Cannot hold more than two chips");
         }
@@ -63,8 +84,13 @@ impl BotRouter {
     }
 
     pub fn value_to_bot(&mut self, bot_key: usize, value: usize) {
-        let bot = self.bots.entry(bot_key).or_insert(Bot::new());
-        bot.receive_chip(value);
+        let return_commands = self.bots
+                                  .entry(bot_key)
+                                  .or_insert(Bot::new())
+                                  .receive_chip(value);
+        for &(bot_key, chip_value) in return_commands.iter() {
+            self.value_to_bot(bot_key, chip_value);
+        }
     }
 
     pub fn command_to_bot(&mut self, bot_key: usize,
@@ -125,40 +151,43 @@ mod test {
         );
     }
 
-    // #[test]
-    // fn router_adds_two_values_so_commands_get_executed() {
-    //     let mut br = BotRouter { bots: HashMap::new() };
-    //     br.exec_command("value 5 goes to bot 2");
-    //     br.exec_command("bot 2 gives low to bot 1 and high to bot 0");
-    //     br.exec_command("value 2 goes to bot 2");
-    //
-    //     assert_eq!(
-    //         br.bots.get(&2),
-    //         Some(&Bot {
-    //             chip1: None,
-    //             chip2: None,
-    //             commands: vec![]
-    //         })
-    //     );
-    //
-    //     assert_eq!(
-    //         br.bots.get(&1),
-    //         Some(&Bot {
-    //             chip1: Some(2),
-    //             chip2: None,
-    //             commands: vec![]
-    //         })
-    //     );
-    //
-    //     assert_eq!(
-    //         br.bots.get(&0),
-    //         Some(&Bot {
-    //             chip1: Some(5),
-    //             chip2: None,
-    //             commands: vec![]
-    //         })
-    //     );
-    // }
+    #[test]
+    fn router_adds_two_values_so_commands_get_executed() {
+        let mut br = BotRouter { bots: HashMap::new() };
+        br.exec_command("value 5 goes to bot 2");
+        br.exec_command("bot 2 gives low to bot 1 and high to bot 0");
+        br.exec_command("value 2 goes to bot 2");
+
+        assert_eq!(
+            br.bots.get(&2),
+            Some(&Bot {
+                chip1: None,
+                chip2: None,
+                low: None,
+                high: None,
+            })
+        );
+
+        assert_eq!(
+            br.bots.get(&1),
+            Some(&Bot {
+                chip1: Some(2),
+                chip2: None,
+                low: None,
+                high: None,
+            })
+        );
+
+        assert_eq!(
+            br.bots.get(&0),
+            Some(&Bot {
+                chip1: Some(5),
+                chip2: None,
+                low: None,
+                high: None,
+            })
+        );
+    }
 
     // #[test]
     // fn test_sample() {
