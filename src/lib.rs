@@ -4,6 +4,7 @@ pub fn puzzle(input: &str) -> usize {
     0
 }
 
+#[derive(Debug)]
 pub enum BotOrOutput {
     Bot,
     Output
@@ -19,6 +20,7 @@ impl<'a> From<&'a str> for BotOrOutput {
     }
 }
 
+#[derive(Debug)]
 pub struct Command {
     low_value_type: BotOrOutput,
     low_value_key: usize,
@@ -71,6 +73,7 @@ impl BotCommandCenter {
             .or_insert(Bot::new(bot_key))
             .receive_chip(value);
         self.bots_to_check.push(bot_key);
+        println!("COMMAND CTR bots to check = {:?}", self.bots_to_check);
     }
 
     pub fn value_to_output(&mut self, output_key: usize, value: usize) {
@@ -82,8 +85,7 @@ impl BotCommandCenter {
     }
 
     pub fn get_next_bot_to_check(&mut self) -> usize {
-        let check_bot_key = self.bots_to_check.iter().next().unwrap();
-        *check_bot_key
+        self.bots_to_check.remove(0)
     }
 
     pub fn bot_has_two_chips(&mut self, check_bot_key: usize) -> bool {
@@ -100,12 +102,16 @@ impl BotCommandCenter {
 
     pub fn process_bots(&mut self) {
         while !self.bots_to_check.is_empty() {
+            println!("COMMAND CTR process_bots, {} bots to process", self.bots_to_check.len());
             let check_bot_key = self.get_next_bot_to_check();
+            println!("COMMAND CTR processing bot {}", check_bot_key);
             if self.bot_has_two_chips(check_bot_key) {
+                println!("COMMAND CTR found bot {} has two chips", check_bot_key);
                 let command = self.saved_commands.remove(&check_bot_key)
                     .expect("no saved command for a bot with two chips");
+                println!("COMMAND CTR found command: {:?}", command);
                 let (low_value, high_value) = self.bot_low_high(check_bot_key);
-
+                println!("COMMAND CTR found low = {}, high = {}", low_value, high_value);
                 match command.low_value_type {
                     BotOrOutput::Bot => self.value_to_bot(
                         command.low_value_key,
@@ -129,6 +135,7 @@ impl BotCommandCenter {
                 }
             }
         }
+        println!("COMMAND CTR bots_to_check is empty");
     }
 
     pub fn command_to_bot(&mut self, bot_key: usize,
