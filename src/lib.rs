@@ -120,6 +120,26 @@ impl BuildingState {
         }
     }
 
+    pub fn elevator_combos(&self) -> Vec<Vec<Component>> {
+        // It sure would be nice to be able to have HashSet<HashSet<Component>>
+        // here so that I don't have to filter out duplicates myself.
+
+        let mut result = vec![];
+        let mut components = self.floors[self.elevator_floor].clone();
+        while !components.is_empty() {
+            let component = components.remove(0);
+            // Could take just this item on the elevator
+            result.push(vec![component]);
+            // Could take this item and one other, if they don't fry
+            for &remaining_component in components.iter() {
+                if !component.is_fried(&vec![remaining_component]) {
+                    result.push(vec![component, remaining_component]);
+                }
+            }
+        }
+        result
+    }
+
     pub fn next_moves(&self) -> Vec<BuildingState> {
         // TODO: actually determine valid next moves
         vec![]
