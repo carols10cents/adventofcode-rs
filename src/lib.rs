@@ -58,6 +58,32 @@ pub enum Component {
     Generator(Element),
 }
 
+impl Component {
+    fn is_fried(&self, others: &Vec<Component>) -> bool {
+        match *self {
+            // Generators can't be fried, just microchips
+            Component::Generator(_) => return false,
+            Component::Microchip(my_element) => {
+                // There's some generator that is not my element
+                (*others).iter().find(|&c| {
+                    match *c {
+                        Component::Generator(e) if e != my_element => true,
+                        _ => false,
+                    }
+                }).is_some() &&
+                // There is no generator that is my element
+                (*others).iter().find(|&c| {
+                    match *c {
+                        Component::Generator(e) if e == my_element => true,
+                        _ => false,
+                    }
+                }).is_none()
+            }
+        }
+    }
+}
+
+#[derive(PartialEq, Copy, Clone)]
 pub enum Element {
     Hydrogen,
     Lithium,
@@ -78,6 +104,18 @@ impl BuildingState {
     pub fn next_moves(&self) -> Vec<BuildingState> {
         // TODO: actually determine valid next moves
         vec![]
+    }
+
+    pub fn has_fried_chips(&self) -> bool {
+        for floor in self.floors.iter() {
+            for component in floor {
+                // This is doing an extra comparison to itself :shrug:
+                if component.is_fried(&floor) {
+                    return true
+                }
+            }
+        }
+        false
     }
 }
 
@@ -130,5 +168,14 @@ mod test {
         };
 
         assert!(world_state.in_end_state());
+    }
+
+    #[test]
+    fn two_microchips_not_fried() {
+        assert!(
+            ! Component::Microchip(Element::Hydrogen).is_fried(
+                &vec![Component::Microchip(Element::Lithium)]
+            )
+        )
     }
 }
