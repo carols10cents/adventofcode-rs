@@ -1,5 +1,5 @@
 
-pub fn puzzle(input: &str) -> usize {
+pub fn puzzle(input: &str) -> u32 {
     let initial_world_state = WorldState {
         steps: 0,
         elevator_floor: 0,
@@ -7,6 +7,9 @@ pub fn puzzle(input: &str) -> usize {
     let mut queue = vec![initial_world_state];
     while !queue.is_empty() {
         let world = queue.remove(0);
+        if world.in_end_state() {
+            return world.steps;
+        }
 
     }
 
@@ -17,6 +20,12 @@ pub fn puzzle(input: &str) -> usize {
 pub struct WorldState {
     steps: u32,
     elevator_floor: usize,
+}
+
+impl WorldState {
+    pub fn in_end_state(&self) -> bool {
+        true
+    }
 }
 
 #[cfg(test)]
