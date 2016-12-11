@@ -1,6 +1,14 @@
 use std::collections::HashMap;
 
 pub fn puzzle(input: &str) -> usize {
+    let mut br = BotRouter {
+        bots: HashMap::new(),
+        output_bins: HashMap::new(),
+    };
+    
+    for line in input.lines() {
+        br.exec_command(line);
+    }
     0
 }
 
