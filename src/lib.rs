@@ -43,12 +43,16 @@ impl Bot {
     pub fn receive_chip(&mut self, chip: usize)
            -> Vec<(usize, BotOrOutput, usize)> {
         if self.chip1.is_none() {
+            println!("bot {}, chip1 = {}", self.key, chip);
             self.chip1 = Some(chip);
             vec![]
         } else if self.chip2.is_none() {
+            println!("bot {}, chip2 = {}", self.key, chip);
             self.chip2 = Some(chip);
             if let (Some(lo), Some(hi)) = (self.low, self.high) {
+                println!("bot {} has 2 chips; low to {:?} {}, high to {:?} {}", self.key, self.low_bot_or_output, lo, self.high_bot_or_output, hi);
                 let return_commands = if self.chip1 < self.chip2 {
+                    println!("bot {} finds {:?} < {:?}", self.key, self.chip1, self.chip2);
                     if self.chip1 == Some(17) && self.chip2 == Some(61) {
                         panic!("The bot you are looking for is {}", self.key);
                     }
@@ -66,6 +70,7 @@ impl Bot {
                         ),
                     ]
                 } else {
+                    println!("bot {} finds {:?} < {:?}", self.key, self.chip2, self.chip1);
                     if self.chip2 == Some(17) && self.chip1 == Some(61) {
                         panic!("The bot you are looking for is {}", self.key);
                     }
@@ -100,6 +105,7 @@ impl Bot {
 
     pub fn receive_command(&mut self, low_bot_or_output: &str, low: usize,
                                       high_bot_or_output: &str, high: usize) {
+        println!("bot {} storing command low to {} {}, high to {} {}", self.key, low_bot_or_output, low, high_bot_or_output, high);
         self.low = Some(low);
         if low_bot_or_output == "bot" {
             self.low_bot_or_output = Some(BotOrOutput::Bot);
@@ -122,6 +128,7 @@ pub struct BotRouter {
 
 impl BotRouter {
     pub fn exec_command(&mut self, input: &str) {
+        println!("COMMAND: {}", input);
         let pieces: Vec<&str> = input.split_whitespace().collect();
 
         if pieces[0] == "value" {
@@ -141,6 +148,7 @@ impl BotRouter {
     }
 
     pub fn value_to_bot(&mut self, bot_key: usize, value: usize) {
+        println!("ROUTER sending value {} to bot {}", value, bot_key);
         let return_commands = self.bots
                                   .entry(bot_key)
                                   .or_insert(Bot::new(bot_key))
@@ -154,6 +162,7 @@ impl BotRouter {
     }
 
     pub fn value_to_output(&mut self, output_key: usize, value: usize) {
+        println!("ROUTER sending value {} to output {}", value, output_key);
         self.output_bins.entry(output_key).or_insert(Vec::new()).push(value);
     }
 
