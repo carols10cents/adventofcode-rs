@@ -11,6 +11,8 @@ pub fn puzzle(input: &str) -> u32 {
             return world.steps;
         }
 
+        let mut valid_next_moves = world.next_moves();
+        queue.append(&mut valid_next_moves);
     }
 
     panic!("Exhausted all possible moves without finding end condition!");
@@ -25,6 +27,10 @@ pub struct WorldState {
 impl WorldState {
     pub fn in_end_state(&self) -> bool {
         true
+    }
+
+    pub fn next_moves(&self) -> Vec<WorldState> {
+        vec![]
     }
 }
 
