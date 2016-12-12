@@ -1,21 +1,31 @@
 use std::collections::HashSet;
 
 pub fn puzzle(input: &str) -> u32 {
+    // let mut floor1 = HashSet::new();
+    // floor1.insert(Component::Generator(Element::Thulium));
+    // floor1.insert(Component::Microchip(Element::Thulium));
+    // floor1.insert(Component::Generator(Element::Plutonium));
+    // floor1.insert(Component::Generator(Element::Strontium));
+    //
+    // let mut floor2 = HashSet::new();
+    // floor2.insert(Component::Microchip(Element::Plutonium));
+    // floor2.insert(Component::Microchip(Element::Strontium));
+    //
+    // let mut floor3 = HashSet::new();
+    // floor3.insert(Component::Generator(Element::Promethium));
+    // floor3.insert(Component::Microchip(Element::Promethium));
+    // floor3.insert(Component::Generator(Element::Ruthenium));
+    // floor3.insert(Component::Microchip(Element::Ruthenium));
+
     let mut floor1 = HashSet::new();
-    floor1.insert(Component::Generator(Element::Thulium));
-    floor1.insert(Component::Microchip(Element::Thulium));
-    floor1.insert(Component::Generator(Element::Plutonium));
-    floor1.insert(Component::Generator(Element::Strontium));
+    floor1.insert(Component::Microchip(Element::Hydrogen));
+    floor1.insert(Component::Microchip(Element::Lithium));
 
     let mut floor2 = HashSet::new();
-    floor2.insert(Component::Microchip(Element::Plutonium));
-    floor2.insert(Component::Microchip(Element::Strontium));
+    floor2.insert(Component::Generator(Element::Hydrogen));
 
     let mut floor3 = HashSet::new();
-    floor3.insert(Component::Generator(Element::Promethium));
-    floor3.insert(Component::Microchip(Element::Promethium));
-    floor3.insert(Component::Generator(Element::Ruthenium));
-    floor3.insert(Component::Microchip(Element::Ruthenium));
+    floor3.insert(Component::Generator(Element::Lithium));
 
     let initial_building_state = BuildingState {
         elevator_floor: 0,
