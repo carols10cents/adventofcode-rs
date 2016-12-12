@@ -184,12 +184,7 @@ impl BuildingState {
     }
 
     pub fn has_fried_chips(&self) -> bool {
-        for floor in self.floors.iter() {
-            if is_fried(floor) {
-                return true
-            }
-        }
-        false
+        self.floors.iter().any(is_fried)
     }
 }
 
