@@ -1,35 +1,35 @@
 #![feature(alloc_system)]
 extern crate alloc_system;
 
-use std::collections::HashSet;
+use std::collections::{HashSet, VecDeque};
 use std::hash::{Hash, Hasher};
 
 pub fn puzzle(input: &str) -> u32 {
-    let mut floor1 = HashSet::new();
-    floor1.insert(Component::Generator(Element::Thulium));
-    floor1.insert(Component::Microchip(Element::Thulium));
-    floor1.insert(Component::Generator(Element::Plutonium));
-    floor1.insert(Component::Generator(Element::Strontium));
-
-    let mut floor2 = HashSet::new();
-    floor2.insert(Component::Microchip(Element::Plutonium));
-    floor2.insert(Component::Microchip(Element::Strontium));
-
-    let mut floor3 = HashSet::new();
-    floor3.insert(Component::Generator(Element::Promethium));
-    floor3.insert(Component::Microchip(Element::Promethium));
-    floor3.insert(Component::Generator(Element::Ruthenium));
-    floor3.insert(Component::Microchip(Element::Ruthenium));
-
     // let mut floor1 = HashSet::new();
-    // floor1.insert(Component::Microchip(Element::Hydrogen));
-    // floor1.insert(Component::Microchip(Element::Lithium));
+    // floor1.insert(Component::Generator(Element::Thulium));
+    // floor1.insert(Component::Microchip(Element::Thulium));
+    // floor1.insert(Component::Generator(Element::Plutonium));
+    // floor1.insert(Component::Generator(Element::Strontium));
     //
     // let mut floor2 = HashSet::new();
-    // floor2.insert(Component::Generator(Element::Hydrogen));
+    // floor2.insert(Component::Microchip(Element::Plutonium));
+    // floor2.insert(Component::Microchip(Element::Strontium));
     //
     // let mut floor3 = HashSet::new();
-    // floor3.insert(Component::Generator(Element::Lithium));
+    // floor3.insert(Component::Generator(Element::Promethium));
+    // floor3.insert(Component::Microchip(Element::Promethium));
+    // floor3.insert(Component::Generator(Element::Ruthenium));
+    // floor3.insert(Component::Microchip(Element::Ruthenium));
+
+    let mut floor1 = HashSet::new();
+    floor1.insert(Component::Microchip(Element::Hydrogen));
+    floor1.insert(Component::Microchip(Element::Lithium));
+
+    let mut floor2 = HashSet::new();
+    floor2.insert(Component::Generator(Element::Hydrogen));
+
+    let mut floor3 = HashSet::new();
+    floor3.insert(Component::Generator(Element::Lithium));
 
     let initial_building_state = BuildingState {
         elevator_floor: 0,
@@ -44,14 +44,13 @@ pub fn puzzle(input: &str) -> u32 {
         steps: 0,
         building: initial_building_state.clone()
     };
-    let mut queue = vec![initial_world_state];
+    let mut queue = VecDeque::new();
+    queue.push_back(initial_world_state);
     let mut seen = HashSet::new();
     seen.insert(initial_building_state);
     let mut steps = 0;
 
-    while !queue.is_empty() {
-        let world = queue.remove(0);
-
+    while let Some(world) = queue.pop_front() {
         if world.steps != steps {
             println!("{} step(s), queue: {}", world.steps, queue.len());
             steps = world.steps;
@@ -66,8 +65,9 @@ pub fn puzzle(input: &str) -> u32 {
             return world.steps;
         }
 
-        let mut valid_next_moves = world.next_moves(&seen);
-        queue.append(&mut valid_next_moves);
+        for next_move in world.next_moves(&seen) {
+            queue.push_back(next_move);
+        }
     }
 
     panic!("Exhausted all possible moves without finding end condition!");
