@@ -1,4 +1,4 @@
-use std::collections::{BTreeSet, VecDeque};
+use std::collections::{BTreeSet, VecDeque, HashSet};
 
 pub fn puzzle(input: &str) -> u32 {
     // let mut floor1 = BTreeSet::new();
@@ -42,7 +42,7 @@ pub fn puzzle(input: &str) -> u32 {
     };
     let mut queue = VecDeque::new();
     queue.push_back(initial_world_state);
-    let mut seen = BTreeSet::new();
+    let mut seen = HashSet::new();
     seen.insert(initial_building_state);
     let mut steps = 0;
 
@@ -80,7 +80,7 @@ impl WorldState {
         self.building.in_end_state()
     }
 
-    pub fn next_moves(&self, seen: &BTreeSet<BuildingState>) -> Vec<WorldState> {
+    pub fn next_moves(&self, seen: &HashSet<BuildingState>) -> Vec<WorldState> {
         self.building.next_moves(seen).into_iter().map(|b| {
             WorldState {
                 steps: self.steps + 1,
@@ -107,7 +107,7 @@ pub enum Element {
     Ruthenium,
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct BuildingState {
     elevator_floor: usize,
     floors: [BTreeSet<Component>; 4],
@@ -164,7 +164,7 @@ impl BuildingState {
         result
     }
 
-    pub fn next_moves(&self, seen: &BTreeSet<BuildingState>)
+    pub fn next_moves(&self, seen: &HashSet<BuildingState>)
                       -> Vec<BuildingState> {
         let mut valid_next_moves = vec![];
         for next_floor in self.next_floors() {
