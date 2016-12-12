@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::hash::{Hash, Hasher};
 
 pub fn puzzle(input: &str) -> u32 {
     // let mut floor1 = HashSet::new();
@@ -41,7 +42,8 @@ pub fn puzzle(input: &str) -> u32 {
         building: initial_building_state.clone()
     };
     let mut queue = vec![initial_world_state];
-    let mut seen = vec![initial_building_state];
+    let mut seen = HashSet::new();
+    seen.insert(initial_building_state);
     let mut steps = 0;
 
     while !queue.is_empty() {
@@ -52,7 +54,7 @@ pub fn puzzle(input: &str) -> u32 {
             steps = world.steps;
         }
 
-        seen.push(world.building.clone());
+        seen.insert(world.building.clone());
 
         if world.steps == 100 {
             panic!("too far!");
@@ -79,7 +81,7 @@ impl WorldState {
         self.building.in_end_state()
     }
 
-    pub fn next_moves(&self, seen: &Vec<BuildingState>) -> Vec<WorldState> {
+    pub fn next_moves(&self, seen: &HashSet<BuildingState>) -> Vec<WorldState> {
         self.building.next_moves(seen).into_iter().map(|b| {
             WorldState {
                 steps: self.steps + 1,
@@ -139,30 +141,22 @@ pub enum Element {
     Ruthenium,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct BuildingState {
     elevator_floor: usize,
     floors: [HashSet<Component>; 4],
 }
 
-// impl PartialEq for BuildingState {
-//     fn eq(&self, other: &BuildingState) -> bool {
-//         if self.elevator_floor != other.elevator_floor {
-//             return false;
-//         }
-//         for (self_floor, other_floor) in self.floors.iter().zip(other.floors.iter()) {
-//             let mut self_floor = self_floor.clone();
-//             let mut other_floor = other_floor.clone();
-//             self_floor.sort();
-//             other_floor.sort();
-//             if self_floor != other_floor {
-//                 return false;
-//             }
-//         }
-//
-//         true
-//     }
-// }
+impl Hash for BuildingState {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.elevator_floor.hash(state);
+        for floor in self.floors.iter() {
+            let mut components: Vec<&Component> = floor.iter().collect();
+            components.sort();
+            components.hash(state);
+        }
+    }
+}
 
 impl Clone for BuildingState {
     fn clone(&self) -> BuildingState {
@@ -216,7 +210,8 @@ impl BuildingState {
         result
     }
 
-    pub fn next_moves(&self, seen: &Vec<BuildingState>) -> Vec<BuildingState> {
+    pub fn next_moves(&self, seen: &HashSet<BuildingState>)
+                      -> Vec<BuildingState> {
         let mut valid_next_moves = vec![];
         for next_floor in self.next_floors() {
             for combo in self.elevator_combos() {
