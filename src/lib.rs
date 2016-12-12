@@ -1,6 +1,3 @@
-#![feature(alloc_system)]
-extern crate alloc_system;
-
 use std::collections::{BTreeSet, VecDeque};
 
 pub fn puzzle(input: &str) -> u32 {
@@ -99,39 +96,6 @@ pub enum Component {
     Generator(Element),
 }
 
-impl Component {
-    fn is_fried(&self, others: &BTreeSet<Component>) -> bool {
-        match *self {
-            Component::Generator(my_element) => {
-                // There's microchip(s) that are not my element
-                // and no generator that is that microchip's element
-                (*others).iter().any(|&c|
-                    match c {
-                        Component::Microchip(e) if e != my_element && !(*others).contains(&Component::Generator(e)) => true,
-                        _ => false,
-                    }
-                )
-            },
-            Component::Microchip(my_element) => {
-                // There's some generator that is not my element
-                (*others).iter().find(|&c| {
-                    match *c {
-                        Component::Generator(e) if e != my_element => true,
-                        _ => false,
-                    }
-                }).is_some() &&
-                // There is no generator that is my element
-                (*others).iter().find(|&c| {
-                    match *c {
-                        Component::Generator(e) if e == my_element => true,
-                        _ => false,
-                    }
-                }).is_none()
-            }
-        }
-    }
-}
-
 #[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord, Hash)]
 pub enum Element {
     Hydrogen,
@@ -180,21 +144,20 @@ impl BuildingState {
         }
     }
 
-    pub fn elevator_combos(&self) -> Vec<Vec<Component>> {
-        // It sure would be nice to be able to have BTreeSet<BTreeSet<Component>>
-        // here so that I don't have to filter out duplicates myself.
-
-        let mut result = vec![];
-        let mut components = self.floors[self.elevator_floor].iter();
-        while let Some(&component) = components.next() {
+    pub fn elevator_combos(&self) -> BTreeSet<BTreeSet<Component>> {
+        let mut result = BTreeSet::new();
+        for &component0 in self.floors[self.elevator_floor].iter() {
             // Could take just this item on the elevator
-            result.push(vec![component]);
+            let mut set = BTreeSet::new();
+            set.insert(component0);
+            result.insert(set.clone());
+
             // Could take this item and one other, if they don't fry
-            for &remaining_component in components.clone() {
-                let mut hs = BTreeSet::new();
-                hs.insert(remaining_component);
-                if !component.is_fried(&hs) {
-                    result.push(vec![component, remaining_component]);
+            for &component1 in self.floors[self.elevator_floor].iter() {
+                let mut scoped_set = set.clone();
+                scoped_set.insert(component1);
+                if !is_fried(&scoped_set) {
+                    result.insert(scoped_set);
                 }
             }
         }
@@ -222,15 +185,34 @@ impl BuildingState {
 
     pub fn has_fried_chips(&self) -> bool {
         for floor in self.floors.iter() {
-            for component in floor {
-                // This is doing an extra comparison to itself :shrug:
-                if component.is_fried(floor) {
-                    return true
-                }
+            if is_fried(floor) {
+                return true
             }
         }
         false
     }
+}
+
+pub fn is_fried(components: &BTreeSet<Component>) -> bool {
+    let mut generator_elements = BTreeSet::new();
+    let mut microchip_elements = BTreeSet::new();
+
+    for &component in components.iter() {
+        match component {
+            Component::Generator(el) => {
+                generator_elements.insert(el);
+            },
+            Component::Microchip(el) => {
+                microchip_elements.insert(el);
+            },
+        }
+    }
+
+    if generator_elements.is_empty() {
+        return false;
+    }
+
+    microchip_elements.difference(&generator_elements).next().is_some()
 }
 
 #[cfg(test)]
@@ -292,56 +274,31 @@ mod test {
     fn two_microchips_not_fried() {
         let mut hs = BTreeSet::new();
         hs.insert(Component::Microchip(Element::Lithium));
-        assert!(
-            ! Component::Microchip(Element::Hydrogen).is_fried(
-                &hs
-            )
-        )
+        hs.insert(Component::Microchip(Element::Hydrogen));
+        assert!( ! is_fried(&hs) );
     }
 
     #[test]
     fn microchip_alone_not_fried() {
-        assert!(
-            ! Component::Microchip(Element::Hydrogen).is_fried(
-                &BTreeSet::new()
-            )
-        )
-    }
-
-    #[test]
-    fn microchip_with_itself_not_fried() {
         let mut hs = BTreeSet::new();
-        hs.insert(Component::Microchip(Element::Hydrogen));
-
-        assert!(
-            ! Component::Microchip(Element::Hydrogen).is_fried(
-                &hs
-            )
-        )
+        hs.insert(Component::Microchip(Element::Lithium));
+        assert!( ! is_fried(&hs) );
     }
 
     #[test]
     fn two_generators_not_fried() {
         let mut hs = BTreeSet::new();
         hs.insert(Component::Generator(Element::Lithium));
-
-        assert!(
-            ! Component::Generator(Element::Hydrogen).is_fried(
-                &hs
-            )
-        )
+        hs.insert(Component::Generator(Element::Hydrogen));
+        assert!( ! is_fried(&hs) );
     }
 
     #[test]
     fn microchip_and_matching_generator_not_fried() {
         let mut hs = BTreeSet::new();
         hs.insert(Component::Generator(Element::Hydrogen));
-
-        assert!(
-            ! Component::Microchip(Element::Hydrogen).is_fried(
-                &hs
-            )
-        )
+        hs.insert(Component::Microchip(Element::Hydrogen));
+        assert!( ! is_fried(&hs) );
     }
 
     #[test]
@@ -349,71 +306,40 @@ mod test {
         let mut hs = BTreeSet::new();
         hs.insert(Component::Generator(Element::Lithium));
         hs.insert(Component::Generator(Element::Hydrogen));
-
-        assert!(
-            ! Component::Microchip(Element::Hydrogen).is_fried(
-                &hs
-            )
-        )
+        hs.insert(Component::Microchip(Element::Hydrogen));
+        assert!( ! is_fried(&hs) );
     }
 
     #[test]
     fn microchip_without_its_generator_with_another_generator_fried() {
         let mut hs = BTreeSet::new();
         hs.insert(Component::Generator(Element::Lithium));
-
-        assert!(
-            Component::Microchip(Element::Hydrogen).is_fried(
-                &hs
-            )
-        )
+        hs.insert(Component::Microchip(Element::Hydrogen));
+        assert!(is_fried(&hs));
     }
 
     #[test]
     fn generator_with_a_microchip_without_its_generator_fried() {
         let mut hs = BTreeSet::new();
         hs.insert(Component::Microchip(Element::Lithium));
-
-        assert!(
-            Component::Generator(Element::Hydrogen).is_fried(
-                &hs
-            )
-        )
+        hs.insert(Component::Generator(Element::Hydrogen));
+        assert!(is_fried(&hs));
     }
 
     #[test]
     fn generator_with_a_generator_not_fried() {
         let mut hs = BTreeSet::new();
         hs.insert(Component::Generator(Element::Lithium));
-        assert!(
-            ! Component::Generator(Element::Hydrogen).is_fried(
-                &hs
-            )
-        )
+        hs.insert(Component::Generator(Element::Hydrogen));
+        assert!( ! is_fried(&hs) );
     }
 
     #[test]
     fn generator_with_its_microchip_not_fried() {
         let mut hs = BTreeSet::new();
         hs.insert(Component::Microchip(Element::Hydrogen));
-
-        assert!(
-            ! Component::Generator(Element::Hydrogen).is_fried(
-                &hs
-            )
-        )
-    }
-
-    #[test]
-    fn generator_with_itself_not_fried() {
-        let mut hs = BTreeSet::new();
         hs.insert(Component::Generator(Element::Hydrogen));
-
-        assert!(
-            ! Component::Generator(Element::Hydrogen).is_fried(
-                &hs
-            )
-        )
+        assert!( ! is_fried(&hs) );
     }
 
     #[test]
@@ -421,11 +347,7 @@ mod test {
         let mut hs = BTreeSet::new();
         hs.insert(Component::Generator(Element::Lithium));
         hs.insert(Component::Microchip(Element::Lithium));
-
-        assert!(
-            ! Component::Generator(Element::Hydrogen).is_fried(
-                &hs
-            )
-        )
+        hs.insert(Component::Generator(Element::Hydrogen));
+        assert!( ! is_fried(&hs) );
     }
 }
