@@ -1,25 +1,29 @@
+use std::collections::HashSet;
 
 pub fn puzzle(input: &str) -> u32 {
+    let mut floor1 = HashSet::new();
+    floor1.insert(Component::Generator(Element::Thulium));
+    floor1.insert(Component::Microchip(Element::Thulium));
+    floor1.insert(Component::Generator(Element::Plutonium));
+    floor1.insert(Component::Generator(Element::Strontium));
+
+    let mut floor2 = HashSet::new();
+    floor2.insert(Component::Microchip(Element::Plutonium));
+    floor2.insert(Component::Microchip(Element::Strontium));
+
+    let mut floor3 = HashSet::new();
+    floor3.insert(Component::Generator(Element::Promethium));
+    floor3.insert(Component::Microchip(Element::Promethium));
+    floor3.insert(Component::Generator(Element::Ruthenium));
+    floor3.insert(Component::Microchip(Element::Ruthenium));
+
     let initial_building_state = BuildingState {
         elevator_floor: 0,
         floors: [
-            vec![
-                Component::Generator(Element::Thulium),
-                Component::Microchip(Element::Thulium),
-                Component::Generator(Element::Plutonium),
-                Component::Generator(Element::Strontium),
-            ],
-            vec![
-                Component::Microchip(Element::Plutonium),
-                Component::Microchip(Element::Strontium),
-            ],
-            vec![
-                Component::Generator(Element::Promethium),
-                Component::Microchip(Element::Promethium),
-                Component::Generator(Element::Ruthenium),
-                Component::Microchip(Element::Ruthenium),
-            ],
-            vec![],
+            floor1,
+            floor2,
+            floor3,
+            HashSet::new(),
         ],
     };
     let initial_world_state = WorldState {
@@ -75,14 +79,14 @@ impl WorldState {
     }
 }
 
-#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord, Hash)]
 pub enum Component {
     Microchip(Element),
     Generator(Element),
 }
 
 impl Component {
-    fn is_fried(&self, others: &Vec<Component>) -> bool {
+    fn is_fried(&self, others: &HashSet<Component>) -> bool {
         match *self {
             Component::Generator(my_element) => {
                 // There's microchip(s) that are not my element
@@ -114,8 +118,10 @@ impl Component {
     }
 }
 
-#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord, Hash)]
 pub enum Element {
+    Hydrogen,
+    Lithium,
     Thulium,
     Plutonium,
     Strontium,
@@ -123,30 +129,30 @@ pub enum Element {
     Ruthenium,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct BuildingState {
     elevator_floor: usize,
-    floors: [Vec<Component>; 4],
+    floors: [HashSet<Component>; 4],
 }
 
-impl PartialEq for BuildingState {
-    fn eq(&self, other: &BuildingState) -> bool {
-        if self.elevator_floor != other.elevator_floor {
-            return false;
-        }
-        for (self_floor, other_floor) in self.floors.iter().zip(other.floors.iter()) {
-            let mut self_floor = self_floor.clone();
-            let mut other_floor = other_floor.clone();
-            self_floor.sort();
-            other_floor.sort();
-            if self_floor != other_floor {
-                return false;
-            }
-        }
-
-        true
-    }
-}
+// impl PartialEq for BuildingState {
+//     fn eq(&self, other: &BuildingState) -> bool {
+//         if self.elevator_floor != other.elevator_floor {
+//             return false;
+//         }
+//         for (self_floor, other_floor) in self.floors.iter().zip(other.floors.iter()) {
+//             let mut self_floor = self_floor.clone();
+//             let mut other_floor = other_floor.clone();
+//             self_floor.sort();
+//             other_floor.sort();
+//             if self_floor != other_floor {
+//                 return false;
+//             }
+//         }
+//
+//         true
+//     }
+// }
 
 impl Clone for BuildingState {
     fn clone(&self) -> BuildingState {
@@ -184,14 +190,15 @@ impl BuildingState {
         // here so that I don't have to filter out duplicates myself.
 
         let mut result = vec![];
-        let mut components = self.floors[self.elevator_floor].clone();
-        while !components.is_empty() {
-            let component = components.remove(0);
+        let mut components = self.floors[self.elevator_floor].iter();
+        while let Some(&component) = components.next() {
             // Could take just this item on the elevator
             result.push(vec![component]);
             // Could take this item and one other, if they don't fry
-            for &remaining_component in components.iter() {
-                if !component.is_fried(&vec![remaining_component]) {
+            for &remaining_component in components.clone() {
+                let mut hs = HashSet::new();
+                hs.insert(remaining_component);
+                if !component.is_fried(&hs) {
                     result.push(vec![component, remaining_component]);
                 }
             }
@@ -204,10 +211,10 @@ impl BuildingState {
         for next_floor in self.next_floors() {
             for combo in self.elevator_combos() {
                 let mut bs = (*self).clone();
-                bs.floors[self.elevator_floor].retain(|c| {
-                   !combo.contains(c)
-                });
-                bs.floors[next_floor].extend_from_slice(&combo);
+                for &c in combo.iter() {
+                    bs.floors[self.elevator_floor].remove(&c);
+                    bs.floors[next_floor].insert(c);
+                }
                 bs.elevator_floor = next_floor;
                 if !bs.has_fried_chips() && !seen.contains(&bs) {
                     valid_next_moves.push(bs);
@@ -221,7 +228,7 @@ impl BuildingState {
         for floor in self.floors.iter() {
             for component in floor {
                 // This is doing an extra comparison to itself :shrug:
-                if component.is_fried(&floor) {
+                if component.is_fried(floor) {
                     return true
                 }
             }
@@ -233,25 +240,29 @@ impl BuildingState {
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::collections::HashSet;
 
     #[test]
     fn not_in_end_state() {
+        let mut floor1 = HashSet::new();
+        floor1.insert(Component::Microchip(Element::Hydrogen));
+        floor1.insert(Component::Microchip(Element::Lithium));
+
+        let mut floor2 = HashSet::new();
+        floor2.insert(Component::Generator(Element::Hydrogen));
+
+        let mut floor3 = HashSet::new();
+        floor3.insert(Component::Generator(Element::Lithium));
+
         let world_state = WorldState {
             steps: 0,
             building: BuildingState {
                 elevator_floor: 0,
                 floors: [
-                    vec![
-                        Component::Microchip(Element::Hydrogen),
-                        Component::Microchip(Element::Lithium),
-                    ],
-                    vec![
-                        Component::Generator(Element::Hydrogen),
-                    ],
-                    vec![
-                        Component::Generator(Element::Lithium),
-                    ],
-                    vec![],
+                    floor1,
+                    floor2,
+                    floor3,
+                    HashSet::new(),
                 ],
             }
         };
@@ -260,20 +271,20 @@ mod test {
 
     #[test]
     fn in_end_state() {
+        let mut floor4 = HashSet::new();
+        floor4.insert(Component::Generator(Element::Hydrogen));
+        floor4.insert(Component::Microchip(Element::Hydrogen));
+        floor4.insert(Component::Microchip(Element::Lithium));
+        floor4.insert(Component::Generator(Element::Lithium));
         let world_state = WorldState {
             steps: 0,
             building: BuildingState {
                 elevator_floor: 0,
                 floors: [
-                    vec![],
-                    vec![],
-                    vec![],
-                    vec![
-                        Component::Generator(Element::Hydrogen),
-                        Component::Microchip(Element::Hydrogen),
-                        Component::Microchip(Element::Lithium),
-                        Component::Generator(Element::Lithium),
-                    ],
+                    HashSet::new(),
+                    HashSet::new(),
+                    HashSet::new(),
+                    floor4,
                 ],
             }
         };
@@ -283,9 +294,11 @@ mod test {
 
     #[test]
     fn two_microchips_not_fried() {
+        let mut hs = HashSet::new();
+        hs.insert(Component::Microchip(Element::Lithium));
         assert!(
             ! Component::Microchip(Element::Hydrogen).is_fried(
-                &vec![Component::Microchip(Element::Lithium)]
+                &hs
             )
         )
     }
@@ -294,103 +307,128 @@ mod test {
     fn microchip_alone_not_fried() {
         assert!(
             ! Component::Microchip(Element::Hydrogen).is_fried(
-                &vec![]
+                &HashSet::new()
             )
         )
     }
 
     #[test]
     fn microchip_with_itself_not_fried() {
+        let mut hs = HashSet::new();
+        hs.insert(Component::Microchip(Element::Hydrogen));
+
         assert!(
             ! Component::Microchip(Element::Hydrogen).is_fried(
-                &vec![Component::Microchip(Element::Hydrogen)]
+                &hs
             )
         )
     }
 
     #[test]
     fn two_generators_not_fried() {
+        let mut hs = HashSet::new();
+        hs.insert(Component::Generator(Element::Lithium));
+
         assert!(
             ! Component::Generator(Element::Hydrogen).is_fried(
-                &vec![Component::Generator(Element::Lithium)]
+                &hs
             )
         )
     }
 
     #[test]
     fn microchip_and_matching_generator_not_fried() {
+        let mut hs = HashSet::new();
+        hs.insert(Component::Generator(Element::Hydrogen));
+
         assert!(
             ! Component::Microchip(Element::Hydrogen).is_fried(
-                &vec![Component::Generator(Element::Hydrogen)]
+                &hs
             )
         )
     }
 
     #[test]
     fn microchip_attached_to_matching_generator_not_fried_by_other_generator() {
+        let mut hs = HashSet::new();
+        hs.insert(Component::Generator(Element::Lithium));
+        hs.insert(Component::Generator(Element::Hydrogen));
+
         assert!(
             ! Component::Microchip(Element::Hydrogen).is_fried(
-                &vec![
-                    Component::Generator(Element::Lithium),
-                    Component::Generator(Element::Hydrogen),
-                ]
+                &hs
             )
         )
     }
 
     #[test]
     fn microchip_without_its_generator_with_another_generator_fried() {
+        let mut hs = HashSet::new();
+        hs.insert(Component::Generator(Element::Lithium));
+
         assert!(
             Component::Microchip(Element::Hydrogen).is_fried(
-                &vec![Component::Generator(Element::Lithium)]
+                &hs
             )
         )
     }
 
     #[test]
     fn generator_with_a_microchip_without_its_generator_fried() {
+        let mut hs = HashSet::new();
+        hs.insert(Component::Microchip(Element::Lithium));
+
         assert!(
             Component::Generator(Element::Hydrogen).is_fried(
-                &vec![Component::Microchip(Element::Lithium)]
+                &hs
             )
         )
     }
 
     #[test]
     fn generator_with_a_generator_not_fried() {
+        let mut hs = HashSet::new();
+        hs.insert(Component::Generator(Element::Lithium));
         assert!(
             ! Component::Generator(Element::Hydrogen).is_fried(
-                &vec![Component::Generator(Element::Lithium)]
+                &hs
             )
         )
     }
 
     #[test]
     fn generator_with_its_microchip_not_fried() {
+        let mut hs = HashSet::new();
+        hs.insert(Component::Microchip(Element::Hydrogen));
+
         assert!(
             ! Component::Generator(Element::Hydrogen).is_fried(
-                &vec![Component::Microchip(Element::Hydrogen)]
+                &hs
             )
         )
     }
 
     #[test]
     fn generator_with_itself_not_fried() {
+        let mut hs = HashSet::new();
+        hs.insert(Component::Generator(Element::Hydrogen));
+
         assert!(
             ! Component::Generator(Element::Hydrogen).is_fried(
-                &vec![Component::Generator(Element::Hydrogen)]
+                &hs
             )
         )
     }
 
     #[test]
     fn generator_with_a_microchip_with_its_generator_not_fried() {
+        let mut hs = HashSet::new();
+        hs.insert(Component::Generator(Element::Lithium));
+        hs.insert(Component::Microchip(Element::Lithium));
+
         assert!(
             ! Component::Generator(Element::Hydrogen).is_fried(
-                &vec![
-                    Component::Generator(Element::Lithium),
-                    Component::Microchip(Element::Lithium),
-                ]
+                &hs
             )
         )
     }
