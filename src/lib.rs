@@ -6,6 +6,10 @@ pub fn puzzle(input: &str) -> u32 {
     floor1.insert(Component::Microchip(Element::Thulium));
     floor1.insert(Component::Generator(Element::Plutonium));
     floor1.insert(Component::Generator(Element::Strontium));
+    floor1.insert(Component::Generator(Element::Elerium));
+    floor1.insert(Component::Microchip(Element::Elerium));
+    floor1.insert(Component::Generator(Element::Dilithium));
+    floor1.insert(Component::Microchip(Element::Dilithium));
 
     let mut floor2 = BTreeSet::new();
     floor2.insert(Component::Microchip(Element::Plutonium));
@@ -104,6 +108,8 @@ pub enum Element {
     Strontium,
     Promethium,
     Ruthenium,
+    Elerium,
+    Dilithium,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
