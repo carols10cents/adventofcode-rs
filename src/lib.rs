@@ -154,9 +154,9 @@ impl BuildingState {
 
             // Could take this item and one other, if they don't fry
             for &component1 in self.floors[self.elevator_floor].iter() {
-                let mut scoped_set = set.clone();
-                scoped_set.insert(component1);
-                if !is_fried(&scoped_set) {
+                if component1 != component0 {
+                    let mut scoped_set = set.clone();
+                    scoped_set.insert(component1);
                     result.insert(scoped_set);
                 }
             }
@@ -175,16 +175,14 @@ impl BuildingState {
                     bs.floors[next_floor].insert(c);
                 }
                 bs.elevator_floor = next_floor;
-                if !bs.has_fried_chips() && !seen.contains(&bs) {
+                if !seen.contains(&bs) &&
+                   !is_fried(&bs.floors[bs.elevator_floor]) &&
+                   !is_fried(&bs.floors[self.elevator_floor]) {
                     valid_next_moves.push(bs);
                 }
             }
         }
         valid_next_moves
-    }
-
-    pub fn has_fried_chips(&self) -> bool {
-        self.floors.iter().any(is_fried)
     }
 }
 
