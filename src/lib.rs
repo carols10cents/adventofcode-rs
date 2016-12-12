@@ -1,31 +1,31 @@
 use std::collections::{BTreeSet, VecDeque, HashSet};
 
 pub fn puzzle(input: &str) -> u32 {
-    // let mut floor1 = BTreeSet::new();
-    // floor1.insert(Component::Generator(Element::Thulium));
-    // floor1.insert(Component::Microchip(Element::Thulium));
-    // floor1.insert(Component::Generator(Element::Plutonium));
-    // floor1.insert(Component::Generator(Element::Strontium));
-    //
-    // let mut floor2 = BTreeSet::new();
-    // floor2.insert(Component::Microchip(Element::Plutonium));
-    // floor2.insert(Component::Microchip(Element::Strontium));
-    //
-    // let mut floor3 = BTreeSet::new();
-    // floor3.insert(Component::Generator(Element::Promethium));
-    // floor3.insert(Component::Microchip(Element::Promethium));
-    // floor3.insert(Component::Generator(Element::Ruthenium));
-    // floor3.insert(Component::Microchip(Element::Ruthenium));
-
     let mut floor1 = BTreeSet::new();
-    floor1.insert(Component::Microchip(Element::Hydrogen));
-    floor1.insert(Component::Microchip(Element::Lithium));
+    floor1.insert(Component::Generator(Element::Thulium));
+    floor1.insert(Component::Microchip(Element::Thulium));
+    floor1.insert(Component::Generator(Element::Plutonium));
+    floor1.insert(Component::Generator(Element::Strontium));
 
     let mut floor2 = BTreeSet::new();
-    floor2.insert(Component::Generator(Element::Hydrogen));
+    floor2.insert(Component::Microchip(Element::Plutonium));
+    floor2.insert(Component::Microchip(Element::Strontium));
 
     let mut floor3 = BTreeSet::new();
-    floor3.insert(Component::Generator(Element::Lithium));
+    floor3.insert(Component::Generator(Element::Promethium));
+    floor3.insert(Component::Microchip(Element::Promethium));
+    floor3.insert(Component::Generator(Element::Ruthenium));
+    floor3.insert(Component::Microchip(Element::Ruthenium));
+
+    // let mut floor1 = BTreeSet::new();
+    // floor1.insert(Component::Microchip(Element::Hydrogen));
+    // floor1.insert(Component::Microchip(Element::Lithium));
+    //
+    // let mut floor2 = BTreeSet::new();
+    // floor2.insert(Component::Generator(Element::Hydrogen));
+    //
+    // let mut floor3 = BTreeSet::new();
+    // floor3.insert(Component::Generator(Element::Lithium));
 
     let initial_building_state = BuildingState {
         elevator_floor: 0,
@@ -52,8 +52,6 @@ pub fn puzzle(input: &str) -> u32 {
             steps = world.steps;
         }
 
-        seen.insert(world.building.clone());
-
         if world.steps == 100 {
             panic!("too far!");
         }
@@ -62,6 +60,7 @@ pub fn puzzle(input: &str) -> u32 {
         }
 
         for next_move in world.next_moves(&seen) {
+            seen.insert(next_move.building.clone());
             queue.push_back(next_move);
         }
     }
