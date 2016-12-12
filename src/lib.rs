@@ -4,14 +4,20 @@ pub fn puzzle(input: &str) -> u32 {
         elevator_floor: 0,
         floors: [
             vec![
-                Component::Microchip(Element::Hydrogen),
-                Component::Microchip(Element::Lithium),
+                Component::Generator(Element::Thulium),
+                Component::Microchip(Element::Thulium),
+                Component::Generator(Element::Plutonium),
+                Component::Generator(Element::Strontium),
             ],
             vec![
-                Component::Generator(Element::Hydrogen),
+                Component::Microchip(Element::Plutonium),
+                Component::Microchip(Element::Strontium),
             ],
             vec![
-                Component::Generator(Element::Lithium),
+                Component::Generator(Element::Promethium),
+                Component::Microchip(Element::Promethium),
+                Component::Generator(Element::Ruthenium),
+                Component::Microchip(Element::Ruthenium),
             ],
             vec![],
         ],
@@ -22,16 +28,19 @@ pub fn puzzle(input: &str) -> u32 {
     };
     let mut queue = vec![initial_world_state];
     let mut seen = vec![initial_building_state];
+    let mut steps = 0;
 
     while !queue.is_empty() {
         let world = queue.remove(0);
 
-        println!("queue: {}", queue.len());
-        println!("considering {:?}", world);
+        if world.steps != steps {
+            println!("{} step(s), queue: {}", world.steps, queue.len());
+            steps = world.steps;
+        }
 
         seen.push(world.building.clone());
 
-        if world.steps == 12 {
+        if world.steps == 100 {
             panic!("too far!");
         }
         if world.in_end_state() {
@@ -66,7 +75,7 @@ impl WorldState {
     }
 }
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord)]
 pub enum Component {
     Microchip(Element),
     Generator(Element),
@@ -105,16 +114,38 @@ impl Component {
     }
 }
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord)]
 pub enum Element {
-    Hydrogen,
-    Lithium,
+    Thulium,
+    Plutonium,
+    Strontium,
+    Promethium,
+    Ruthenium,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct BuildingState {
     elevator_floor: usize,
     floors: [Vec<Component>; 4],
+}
+
+impl PartialEq for BuildingState {
+    fn eq(&self, other: &BuildingState) -> bool {
+        if self.elevator_floor != other.elevator_floor {
+            return false;
+        }
+        for (self_floor, other_floor) in self.floors.iter().zip(other.floors.iter()) {
+            let mut self_floor = self_floor.clone();
+            let mut other_floor = other_floor.clone();
+            self_floor.sort();
+            other_floor.sort();
+            if self_floor != other_floor {
+                return false;
+            }
+        }
+
+        true
+    }
 }
 
 impl Clone for BuildingState {
@@ -363,5 +394,4 @@ mod test {
             )
         )
     }
-
 }
