@@ -33,28 +33,39 @@ impl FromStr for Instruction {
 #[derive(Debug, PartialEq)]
 pub enum FromLocation {
     Integer(i32),
+    Register(Register),
 }
 
 impl FromStr for FromLocation {
     type Err = Box<Error>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(FromLocation::Integer(s.parse()?))
+        match s.parse::<i32>() {
+            Ok(i) => Ok(FromLocation::Integer(i)),
+            Err(_) => Ok(FromLocation::Register(s.parse()?))
+        }
     }
 }
 
 #[derive(Debug, PartialEq)]
 pub enum Register {
     A,
+    B,
+    C,
+    D,
 }
 
 impl FromStr for Register {
     type Err = Box<Error>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use Register::*;
         match s {
-            "a" => Ok(Register::A),
-            _ => unimplemented!(),
+            "a" => Ok(A),
+            "b" => Ok(B),
+            "c" => Ok(C),
+            "d" => Ok(D),
+            other => Err(format!("Unknown register {}", other).into()),
         }
     }
 }
@@ -69,6 +80,18 @@ mod test {
         assert_eq!(
             instr,
             Instruction::Copy(FromLocation::Integer(41), Register::A)
+        );
+    }
+
+    #[test]
+    fn parse_cpy_register() {
+        let instr: Instruction = "cpy a c".parse().expect("couldn't parse");
+        assert_eq!(
+            instr,
+            Instruction::Copy(
+                FromLocation::Register(Register::A),
+                Register::C,
+            )
         );
     }
 
