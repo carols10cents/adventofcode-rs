@@ -12,6 +12,8 @@ pub fn puzzle(input: &str) -> i32 {
 pub enum Instruction {
     Copy(FromLocation, Register),
     Increment(Register),
+    Decrement(Register),
+    JumpNonZero(Register, i32),
 }
 
 impl FromStr for Instruction {
@@ -31,7 +33,19 @@ impl FromStr for Instruction {
                     parts.next().ok_or("no register")?.parse()?
                 )
             ),
-            _ => unimplemented!(),
+            Some("dec") => Ok(
+                Instruction::Decrement(
+                    parts.next().ok_or("no register")?.parse()?
+                )
+            ),
+            Some("jnz") => Ok(
+                Instruction::JumpNonZero(
+                    parts.next().ok_or("no register")?.parse()?,
+                    parts.next().ok_or("no offset")?.parse()?
+                )
+            ),
+            Some(other) => Err(format!("Unknown instruction: {}", other).into()),
+            None => Err("Instruction missing".into()),
         }
     }
 }
@@ -105,6 +119,24 @@ mod test {
         assert_eq!(
             instr,
             Instruction::Increment(Register::A)
+        );
+    }
+
+    #[test]
+    fn parse_dec() {
+        let instr: Instruction = "dec a".parse().expect("couldn't parse");
+        assert_eq!(
+            instr,
+            Instruction::Decrement(Register::A)
+        );
+    }
+
+    #[test]
+    fn parse_jnz() {
+        let instr: Instruction = "jnz a 2".parse().expect("couldn't parse");
+        assert_eq!(
+            instr,
+            Instruction::JumpNonZero(Register::A, 2)
         );
     }
 
