@@ -2,10 +2,11 @@ use std::error::Error;
 use std::str::FromStr;
 
 pub fn puzzle(input: &str) -> i32 {
-    for line in input.lines() {
-        let line = line.trim();
-    }
-    0
+    let instructions: Result<Vec<_>, _> = input.lines().map(|line| line.trim().parse()).collect();
+    let instructions = instructions.expect("couldn't parse instructions");
+    let mut machine = Machine::new();
+    machine.execute(&instructions);
+    machine.value_of(Register::A)
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -100,7 +101,9 @@ impl Machine {
     }
 
     fn execute(&mut self, instructions: &[Instruction]) {
-        for &instruction in instructions {
+        let mut program_counter = 0;
+        while let Some(&instruction) = instructions.get(program_counter) {
+            let mut jump = 0;
             match instruction {
                 Instruction::Copy(
                     FromLocation::Integer(i),
@@ -122,8 +125,18 @@ impl Machine {
                     let index = Machine::register_index(register);
                     self.registers[index] -= 1;
                 },
-                Instruction::JumpNonZero(_, _) => {},
+                Instruction::JumpNonZero(register, offset) => {
+                    let index = Machine::register_index(register);
+                    if self.registers[index] != 0 {
+                        jump = offset;
+                    }
+                },
             }
+            let next_pc = program_counter as i32 + 1 + jump;
+            if next_pc < 0 {
+                panic!("Jumped too far back!")
+            }
+            program_counter = next_pc as usize;
         }
     }
 
@@ -271,6 +284,24 @@ mod test {
         );
 
         assert_eq!(machine.value_of(Register::A), 1);
+    }
+
+    #[test]
+    fn execute_jnz_when_non_zero() {
+        let mut machine = Machine::new();
+        machine.execute(
+            &[
+                Instruction::Decrement(
+                    Register::D,
+                ),
+                Instruction::JumpNonZero(Register::D, 2),
+                Instruction::Increment(
+                    Register::A,
+                ),
+            ]
+        );
+
+        assert_eq!(machine.value_of(Register::A), 0);
     }
 
     #[test]
