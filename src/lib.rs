@@ -98,7 +98,7 @@ pub struct Machine {
 impl Machine {
     pub fn new() -> Machine {
         Machine {
-            registers: [0; 4],
+            registers: [0, 0, 1, 0],
         }
     }
 
