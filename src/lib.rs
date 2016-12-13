@@ -14,13 +14,15 @@ pub enum Instruction {
     Copy(FromLocation, Register),
     Increment(Register),
     Decrement(Register),
-    JumpNonZero(Register, i32),
+    JumpNonZero(FromLocation, i32),
 }
 
 impl FromStr for Instruction {
     type Err = Box<Error>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        println!("parsing instruction: {}", s);
+
         let mut parts = s.split_whitespace();
         match parts.next() {
             Some("cpy") => Ok(
@@ -125,7 +127,12 @@ impl Machine {
                     let index = Machine::register_index(register);
                     self.registers[index] -= 1;
                 },
-                Instruction::JumpNonZero(register, offset) => {
+                Instruction::JumpNonZero(FromLocation::Integer(i), offset) => {
+                    if i != 0 {
+                        jump = offset;
+                    }
+                },
+                Instruction::JumpNonZero(FromLocation::Register(register), offset) => {
                     let index = Machine::register_index(register);
                     if self.registers[index] != 0 {
                         jump = offset;
@@ -204,7 +211,7 @@ mod test {
         let instr: Instruction = "jnz a 2".parse().expect("couldn't parse");
         assert_eq!(
             instr,
-            Instruction::JumpNonZero(Register::A, 2)
+            Instruction::JumpNonZero(FromLocation::Register(Register::A), 2)
         );
     }
 
@@ -276,7 +283,7 @@ mod test {
         machine.execute(
             &[
                 // D should be 0, jump doesn't happen
-                Instruction::JumpNonZero(Register::D, 2),
+                Instruction::JumpNonZero(FromLocation::Register(Register::D), 2),
                 Instruction::Increment(
                     Register::A,
                 ),
@@ -294,7 +301,7 @@ mod test {
                 Instruction::Decrement(
                     Register::D,
                 ),
-                Instruction::JumpNonZero(Register::D, 2),
+                Instruction::JumpNonZero(FromLocation::Register(Register::D), 2),
                 Instruction::Increment(
                     Register::A,
                 ),
