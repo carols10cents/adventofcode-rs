@@ -8,7 +8,7 @@ pub fn puzzle(input: &str) -> i32 {
     0
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Instruction {
     Copy(FromLocation, Register),
     Increment(Register),
@@ -50,7 +50,7 @@ impl FromStr for Instruction {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum FromLocation {
     Integer(i32),
     Register(Register),
@@ -65,7 +65,7 @@ impl FromStr for FromLocation {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Register {
     A,
     B,
@@ -85,6 +85,61 @@ impl FromStr for Register {
             "d" => Ok(D),
             other => Err(format!("Unknown register {}", other).into()),
         }
+    }
+}
+
+pub struct Machine {
+    registers: [i32; 4],
+}
+
+impl Machine {
+    pub fn new() -> Machine {
+        Machine {
+            registers: [0; 4],
+        }
+    }
+
+    fn execute(&mut self, instructions: &[Instruction]) {
+        for &instruction in instructions {
+            match instruction {
+                Instruction::Copy(
+                    FromLocation::Integer(i),
+                    to
+                ) => {
+                    let index = Machine::register_index(to);
+                    self.registers[index] = i;
+                },
+                Instruction::Copy(FromLocation::Register(from), to) => {
+                    let index_from = Machine::register_index(from);
+                    let index_to = Machine::register_index(to);
+                    self.registers[index_to] = self.registers[index_from];
+                },
+                Instruction::Increment(register) => {
+                    let index = Machine::register_index(register);
+                    self.registers[index] += 1;
+                },
+                Instruction::Decrement(register) => {
+                    let index = Machine::register_index(register);
+                    self.registers[index] -= 1;
+                },
+                Instruction::JumpNonZero(_, _) => {},
+            }
+        }
+    }
+
+    fn register_index(register: Register) -> usize {
+        use Register::*;
+        match register {
+            A => 0,
+            B => 1,
+            C => 2,
+            D => 3,
+        }
+    }
+
+    fn value_of(&self, register: Register) -> i32 {
+        let index = Machine::register_index(register);
+        self.registers[index]
     }
 }
 
@@ -138,6 +193,84 @@ mod test {
             instr,
             Instruction::JumpNonZero(Register::A, 2)
         );
+    }
+
+    #[test]
+    fn execute_copy() {
+        let mut machine = Machine::new();
+        machine.execute(
+            &[
+                Instruction::Copy(
+                    FromLocation::Integer(5),
+                    Register::A,
+                ),
+            ]
+        );
+
+        assert_eq!(machine.value_of(Register::A), 5);
+    }
+
+    #[test]
+    fn execute_copy_register() {
+        let mut machine = Machine::new();
+        machine.execute(
+            &[
+                Instruction::Copy(
+                    FromLocation::Integer(5),
+                    Register::A,
+                ),
+                Instruction::Copy(
+                    FromLocation::Register(Register::A),
+                    Register::B,
+                ),
+            ]
+        );
+
+        assert_eq!(machine.value_of(Register::B), 5);
+    }
+
+    #[test]
+    fn execute_increment() {
+        let mut machine = Machine::new();
+        machine.execute(
+            &[
+                Instruction::Increment(
+                    Register::C,
+                ),
+            ]
+        );
+
+        assert_eq!(machine.value_of(Register::C), 1);
+    }
+
+    #[test]
+    fn execute_decrement() {
+        let mut machine = Machine::new();
+        machine.execute(
+            &[
+                Instruction::Decrement(
+                    Register::D,
+                ),
+            ]
+        );
+
+        assert_eq!(machine.value_of(Register::D), -1);
+    }
+
+    #[test]
+    fn execute_jnz_when_zero() {
+        let mut machine = Machine::new();
+        machine.execute(
+            &[
+                // D should be 0, jump doesn't happen
+                Instruction::JumpNonZero(Register::D, 2),
+                Instruction::Increment(
+                    Register::A,
+                ),
+            ]
+        );
+
+        assert_eq!(machine.value_of(Register::A), 1);
     }
 
     #[test]
