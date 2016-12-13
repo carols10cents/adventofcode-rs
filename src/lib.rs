@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::str::FromStr;
 
 pub fn puzzle(input: &str) -> i32 {
     for line in input.lines() {
@@ -12,7 +13,7 @@ pub enum Instruction {
     Copy(FromLocation, Register),
 }
 
-impl std::str::FromStr for Instruction {
+impl FromStr for Instruction {
     type Err = Box<Error>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -34,7 +35,7 @@ pub enum FromLocation {
     Integer(i32),
 }
 
-impl std::str::FromStr for FromLocation {
+impl FromStr for FromLocation {
     type Err = Box<Error>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -47,7 +48,7 @@ pub enum Register {
     A,
 }
 
-impl std::str::FromStr for Register {
+impl FromStr for Register {
     type Err = Box<Error>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
