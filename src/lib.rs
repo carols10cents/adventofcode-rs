@@ -40,10 +40,8 @@ impl FromStr for FromLocation {
     type Err = Box<Error>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.parse::<i32>() {
-            Ok(i) => Ok(FromLocation::Integer(i)),
-            Err(_) => Ok(FromLocation::Register(s.parse()?))
-        }
+        s.parse().map(FromLocation::Integer)
+                 .or_else(|_| s.parse().map(FromLocation::Register))
     }
 }
 
