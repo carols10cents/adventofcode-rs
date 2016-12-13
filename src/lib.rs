@@ -11,6 +11,7 @@ pub fn puzzle(input: &str) -> i32 {
 #[derive(Debug, PartialEq)]
 pub enum Instruction {
     Copy(FromLocation, Register),
+    Increment(Register),
 }
 
 impl FromStr for Instruction {
@@ -22,6 +23,11 @@ impl FromStr for Instruction {
             Some("cpy") => Ok(
                 Instruction::Copy(
                     parts.next().ok_or("no from location")?.parse()?,
+                    parts.next().ok_or("no register")?.parse()?
+                )
+            ),
+            Some("inc") => Ok(
+                Instruction::Increment(
                     parts.next().ok_or("no register")?.parse()?
                 )
             ),
@@ -90,6 +96,15 @@ mod test {
                 FromLocation::Register(Register::A),
                 Register::C,
             )
+        );
+    }
+
+    #[test]
+    fn parse_inc() {
+        let instr: Instruction = "inc a".parse().expect("couldn't parse");
+        assert_eq!(
+            instr,
+            Instruction::Increment(Register::A)
         );
     }
 
