@@ -105,6 +105,9 @@ impl Machine {
     fn execute(&mut self, instructions: &[Instruction]) {
         let mut program_counter = 0;
         while let Some(&instruction) = instructions.get(program_counter) {
+            // println!("registers = {:?}", self.registers);
+            // println!("executing instruction at {}: {:?}", program_counter, instruction);
+
             let mut jump = 0;
             match instruction {
                 Instruction::Copy(
@@ -129,13 +132,13 @@ impl Machine {
                 },
                 Instruction::JumpNonZero(FromLocation::Integer(i), offset) => {
                     if i != 0 {
-                        jump = offset;
+                        jump = offset - 1;
                     }
                 },
                 Instruction::JumpNonZero(FromLocation::Register(register), offset) => {
                     let index = Machine::register_index(register);
                     if self.registers[index] != 0 {
-                        jump = offset;
+                        jump = offset - 1;
                     }
                 },
             }
