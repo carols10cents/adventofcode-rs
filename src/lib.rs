@@ -1,327 +1,56 @@
-use std::error::Error;
-use std::str::FromStr;
+use std::collections::{VecDeque, HashSet};
 
-pub fn puzzle(input: &str) -> i32 {
-    let instructions: Result<Vec<_>, _> = input.lines().map(|line| line.trim().parse()).collect();
-    let instructions = instructions.expect("couldn't parse instructions");
-    let mut machine = Machine::new();
-    machine.execute(&instructions);
-    machine.value_of(Register::A)
-}
+pub fn puzzle(input: &str) -> u32 {
+    let start_point = Point { x: 1, y: 1};
+    let end_point = Point { x: 31, y: 39 };
+    let mut queue = VecDeque::new();
+    let mut seen = HashSet::new();
 
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum Instruction {
-    Copy(FromLocation, Register),
-    Increment(Register),
-    Decrement(Register),
-    JumpNonZero(FromLocation, i32),
-}
+    queue.push_back((start_point, 0));
+    seen.insert(start_point);
 
-impl FromStr for Instruction {
-    type Err = Box<Error>;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        println!("parsing instruction: {}", s);
-
-        let mut parts = s.split_whitespace();
-        match parts.next() {
-            Some("cpy") => Ok(
-                Instruction::Copy(
-                    parts.next().ok_or("no from location")?.parse()?,
-                    parts.next().ok_or("no register")?.parse()?
-                )
-            ),
-            Some("inc") => Ok(
-                Instruction::Increment(
-                    parts.next().ok_or("no register")?.parse()?
-                )
-            ),
-            Some("dec") => Ok(
-                Instruction::Decrement(
-                    parts.next().ok_or("no register")?.parse()?
-                )
-            ),
-            Some("jnz") => Ok(
-                Instruction::JumpNonZero(
-                    parts.next().ok_or("no register")?.parse()?,
-                    parts.next().ok_or("no offset")?.parse()?
-                )
-            ),
-            Some(other) => Err(format!("Unknown instruction: {}", other).into()),
-            None => Err("Instruction missing".into()),
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum FromLocation {
-    Integer(i32),
-    Register(Register),
-}
-
-impl FromStr for FromLocation {
-    type Err = Box<Error>;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        s.parse().map(FromLocation::Integer)
-                 .or_else(|_| s.parse().map(FromLocation::Register))
-    }
-}
-
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum Register {
-    A,
-    B,
-    C,
-    D,
-}
-
-impl FromStr for Register {
-    type Err = Box<Error>;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use Register::*;
-        match s {
-            "a" => Ok(A),
-            "b" => Ok(B),
-            "c" => Ok(C),
-            "d" => Ok(D),
-            other => Err(format!("Unknown register {}", other).into()),
-        }
-    }
-}
-
-pub struct Machine {
-    registers: [i32; 4],
-}
-
-impl Machine {
-    pub fn new() -> Machine {
-        Machine {
-            registers: [0, 0, 1, 0],
-        }
-    }
-
-    fn execute(&mut self, instructions: &[Instruction]) {
-        let mut program_counter = 0;
-        while let Some(&instruction) = instructions.get(program_counter) {
-            // println!("registers = {:?}", self.registers);
-            // println!("executing instruction at {}: {:?}", program_counter, instruction);
-
-            let mut jump = 0;
-            match instruction {
-                Instruction::Copy(
-                    FromLocation::Integer(i),
-                    to
-                ) => {
-                    let index = Machine::register_index(to);
-                    self.registers[index] = i;
-                },
-                Instruction::Copy(FromLocation::Register(from), to) => {
-                    let index_from = Machine::register_index(from);
-                    let index_to = Machine::register_index(to);
-                    self.registers[index_to] = self.registers[index_from];
-                },
-                Instruction::Increment(register) => {
-                    let index = Machine::register_index(register);
-                    self.registers[index] += 1;
-                },
-                Instruction::Decrement(register) => {
-                    let index = Machine::register_index(register);
-                    self.registers[index] -= 1;
-                },
-                Instruction::JumpNonZero(FromLocation::Integer(i), offset) => {
-                    if i != 0 {
-                        jump = offset - 1;
-                    }
-                },
-                Instruction::JumpNonZero(FromLocation::Register(register), offset) => {
-                    let index = Machine::register_index(register);
-                    if self.registers[index] != 0 {
-                        jump = offset - 1;
-                    }
-                },
+    while let Some((point, distance)) = queue.pop_front() {
+        for &neighbor in point.neighbors().iter().filter(|p| is_empty(p)) {
+            if neighbor == end_point {
+                return distance + 1;
             }
-            let next_pc = program_counter as i32 + 1 + jump;
-            if next_pc < 0 {
-                panic!("Jumped too far back!")
+            if !seen.contains(&neighbor) {
+                queue.push_back((neighbor, distance + 1));
+                seen.insert(neighbor);
             }
-            program_counter = next_pc as usize;
         }
     }
+    panic!("never got to the end!");
+}
 
-    fn register_index(register: Register) -> usize {
-        use Register::*;
-        match register {
-            A => 0,
-            B => 1,
-            C => 2,
-            D => 3,
-        }
-    }
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
+struct Point {
+    x: u32,
+    y: u32,
+}
 
-    fn value_of(&self, register: Register) -> i32 {
-        let index = Machine::register_index(register);
-        self.registers[index]
+impl Point {
+    fn neighbors(&self) -> Vec<Point> {
+        let changed_xs = [self.x.checked_sub(1), self.x.checked_add(1)];
+        let changed_xs = changed_xs.iter()
+            .flat_map(|x| x)
+            .map(|&x| Point { x: x, y: self.y });
+        let changed_ys = [self.y.checked_sub(1), self.y.checked_add(1)];
+        let changed_ys = changed_ys.iter()
+            .flat_map(|y| y)
+            .map(|&y| Point { x: self.x, y: y });
+
+        changed_xs.chain(changed_ys).collect()
     }
+}
+
+fn is_empty(point: &Point) -> bool {
+    let &Point { x, y } = point;
+    (x*x + 3*x + 2*x*y + y + y*y + 1358).count_ones() % 2 == 0
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
 
-    #[test]
-    fn parse_cpy() {
-        let instr: Instruction = "cpy 41 a".parse().expect("couldn't parse");
-        assert_eq!(
-            instr,
-            Instruction::Copy(FromLocation::Integer(41), Register::A)
-        );
-    }
-
-    #[test]
-    fn parse_cpy_register() {
-        let instr: Instruction = "cpy a c".parse().expect("couldn't parse");
-        assert_eq!(
-            instr,
-            Instruction::Copy(
-                FromLocation::Register(Register::A),
-                Register::C,
-            )
-        );
-    }
-
-    #[test]
-    fn parse_inc() {
-        let instr: Instruction = "inc a".parse().expect("couldn't parse");
-        assert_eq!(
-            instr,
-            Instruction::Increment(Register::A)
-        );
-    }
-
-    #[test]
-    fn parse_dec() {
-        let instr: Instruction = "dec a".parse().expect("couldn't parse");
-        assert_eq!(
-            instr,
-            Instruction::Decrement(Register::A)
-        );
-    }
-
-    #[test]
-    fn parse_jnz() {
-        let instr: Instruction = "jnz a 2".parse().expect("couldn't parse");
-        assert_eq!(
-            instr,
-            Instruction::JumpNonZero(FromLocation::Register(Register::A), 2)
-        );
-    }
-
-    #[test]
-    fn execute_copy() {
-        let mut machine = Machine::new();
-        machine.execute(
-            &[
-                Instruction::Copy(
-                    FromLocation::Integer(5),
-                    Register::A,
-                ),
-            ]
-        );
-
-        assert_eq!(machine.value_of(Register::A), 5);
-    }
-
-    #[test]
-    fn execute_copy_register() {
-        let mut machine = Machine::new();
-        machine.execute(
-            &[
-                Instruction::Copy(
-                    FromLocation::Integer(5),
-                    Register::A,
-                ),
-                Instruction::Copy(
-                    FromLocation::Register(Register::A),
-                    Register::B,
-                ),
-            ]
-        );
-
-        assert_eq!(machine.value_of(Register::B), 5);
-    }
-
-    #[test]
-    fn execute_increment() {
-        let mut machine = Machine::new();
-        machine.execute(
-            &[
-                Instruction::Increment(
-                    Register::C,
-                ),
-            ]
-        );
-
-        assert_eq!(machine.value_of(Register::C), 1);
-    }
-
-    #[test]
-    fn execute_decrement() {
-        let mut machine = Machine::new();
-        machine.execute(
-            &[
-                Instruction::Decrement(
-                    Register::D,
-                ),
-            ]
-        );
-
-        assert_eq!(machine.value_of(Register::D), -1);
-    }
-
-    #[test]
-    fn execute_jnz_when_zero() {
-        let mut machine = Machine::new();
-        machine.execute(
-            &[
-                // D should be 0, jump doesn't happen
-                Instruction::JumpNonZero(FromLocation::Register(Register::D), 2),
-                Instruction::Increment(
-                    Register::A,
-                ),
-            ]
-        );
-
-        assert_eq!(machine.value_of(Register::A), 1);
-    }
-
-    #[test]
-    fn execute_jnz_when_non_zero() {
-        let mut machine = Machine::new();
-        machine.execute(
-            &[
-                Instruction::Decrement(
-                    Register::D,
-                ),
-                Instruction::JumpNonZero(FromLocation::Register(Register::D), 2),
-                Instruction::Increment(
-                    Register::A,
-                ),
-            ]
-        );
-
-        assert_eq!(machine.value_of(Register::A), 0);
-    }
-
-    #[test]
-    fn sample() {
-        let input = "cpy 41 a
-            inc a
-            inc a
-            dec a
-            jnz a 2
-            dec a";
-        assert_eq!(puzzle(input), 42);
-    }
 }
