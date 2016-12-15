@@ -10,6 +10,9 @@ pub fn puzzle(input: &str) -> u32 {
     seen.insert(start_point);
 
     while let Some((point, distance)) = queue.pop_front() {
+        if distance > 50 {
+            println!("{} unique locations seen", seen.len() - queue.len() - 1);
+        }
         for &neighbor in point.neighbors().iter().filter(|p| is_empty(p)) {
             if neighbor == end_point {
                 return distance + 1;
