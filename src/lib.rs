@@ -9,6 +9,16 @@ enum Tile {
     Trap,
 }
 
+fn next_row(row: &[Tile]) -> Vec<Tile> {
+    let mut x = vec![Tile::Safe];
+    x.extend_from_slice(row);
+    x.push(Tile::Safe);
+
+    x.windows(3).map(|tiles| {
+        next_tile(tiles[0], tiles[1], tiles[2])
+    }).collect()
+}
+
 fn next_tile(left: Tile, center: Tile, right: Tile) -> Tile {
     use Tile::*;
     match (left, center, right) {
@@ -50,6 +60,21 @@ mod test {
     #[test]
     fn fourth_rule() {
         assert_eq!(next_tile(Tile::Safe, Tile::Safe, Tile::Trap), Tile::Trap);
+    }
+
+    fn string_to_row(s: &str) -> Vec<Tile> {
+        s.chars().map(|c| {
+            match c {
+                '.' => Tile::Safe,
+                '^' => Tile::Trap,
+                _ => panic!("unknown tile character {}", c),
+            }
+        }).collect()
+    }
+
+    #[test]
+    fn row_at_a_time() {
+        assert_eq!(next_row(&string_to_row("..^^.")), string_to_row(".^^^^"));
     }
 
 }
