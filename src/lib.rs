@@ -1,15 +1,17 @@
+use std::str::FromStr;
+use std::error::Error;
 
 pub fn puzzle(input: &str) -> u32 {
     0
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-enum Tile {
+pub enum Tile {
     Safe,
     Trap,
 }
 
-fn next_tile(left: Tile, center: Tile, right: Tile) -> Tile {
+pub fn next_tile(left: Tile, center: Tile, right: Tile) -> Tile {
     use Tile::*;
     match (left, center, right) {
         (Trap, Trap, Safe) => Trap,
@@ -21,7 +23,7 @@ fn next_tile(left: Tile, center: Tile, right: Tile) -> Tile {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-struct Row(Vec<Tile>);
+pub struct Row(Vec<Tile>);
 
 impl Row {
     fn next(&self) -> Row {
@@ -35,14 +37,22 @@ impl Row {
     }
 }
 
-fn string_to_row(s: &str) -> Row {
-    Row(s.chars().map(|c| {
-        match c {
+impl Tile {
+    fn from_char(c: char) -> Result<Tile, Box<Error>> {
+        Ok(match c {
             '.' => Tile::Safe,
             '^' => Tile::Trap,
-            _ => panic!("unknown tile character {}", c),
-        }
-    }).collect())
+            _ => return Err(format!("unknown tile character {}", c).into()),
+        })
+    }
+}
+
+impl FromStr for Row {
+    type Err = Box<Error>;
+
+    fn from_str(s: &str) -> Result<Row, Self::Err> {
+        s.chars().map(Tile::from_char).collect::<Result<_, _>>().map(Row)
+    }
 }
 
 #[cfg(test)]
@@ -75,6 +85,10 @@ mod test {
     #[test]
     fn fourth_rule() {
         assert_eq!(next_tile(Tile::Safe, Tile::Safe, Tile::Trap), Tile::Trap);
+    }
+
+    fn string_to_row(s: &str) -> Row {
+        s.parse().expect("Couldn't create Row")
     }
 
     #[test]
