@@ -10,7 +10,14 @@ enum Tile {
 }
 
 fn next_tile(left: Tile, center: Tile, right: Tile) -> Tile {
-    Tile::Safe
+    use Tile::*;
+    match (left, center, right) {
+        (Trap, Trap, Safe) => Trap,
+        (Safe, Trap, Trap) => Trap,
+        (Trap, Safe, Safe) => Trap,
+        (Safe, Safe, Trap) => Trap,
+        _ => Safe,
+    }
 }
 
 #[cfg(test)]
@@ -20,20 +27,29 @@ mod test {
     #[test]
     fn safe() {
         assert_eq!(next_tile(Tile::Safe, Tile::Safe, Tile::Safe), Tile::Safe);
+        assert_eq!(next_tile(Tile::Safe, Tile::Trap, Tile::Safe), Tile::Safe);
+        assert_eq!(next_tile(Tile::Trap, Tile::Safe, Tile::Trap), Tile::Safe);
+        assert_eq!(next_tile(Tile::Trap, Tile::Trap, Tile::Trap), Tile::Safe);
+    }
+
+    #[test]
+    fn first_rule() {
+        assert_eq!(next_tile(Tile::Trap, Tile::Trap, Tile::Safe), Tile::Trap);
+    }
+
+    #[test]
+    fn second_rule() {
+        assert_eq!(next_tile(Tile::Safe, Tile::Trap, Tile::Trap), Tile::Trap);
+    }
+
+    #[test]
+    fn third_rule() {
+        assert_eq!(next_tile(Tile::Trap, Tile::Safe, Tile::Safe), Tile::Trap);
+    }
+
+    #[test]
+    fn fourth_rule() {
+        assert_eq!(next_tile(Tile::Safe, Tile::Safe, Tile::Trap), Tile::Trap);
     }
 
 }
-//
-// ...
-// ..^
-// .^.
-// ^..
-// .^^
-// ^.^
-// ^^.
-// ^^^
-//
-// Its left and center tiles are traps, but its right tile is not.
-// Its center and right tiles are traps, but its left tile is not.
-// Only its left tile is a trap.
-// Only its right tile is a trap.
