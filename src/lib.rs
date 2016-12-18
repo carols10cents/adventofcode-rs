@@ -9,16 +9,6 @@ enum Tile {
     Trap,
 }
 
-fn next_row(row: &[Tile]) -> Vec<Tile> {
-    let mut x = vec![Tile::Safe];
-    x.extend_from_slice(row);
-    x.push(Tile::Safe);
-
-    x.windows(3).map(|tiles| {
-        next_tile(tiles[0], tiles[1], tiles[2])
-    }).collect()
-}
-
 fn next_tile(left: Tile, center: Tile, right: Tile) -> Tile {
     use Tile::*;
     match (left, center, right) {
@@ -28,6 +18,31 @@ fn next_tile(left: Tile, center: Tile, right: Tile) -> Tile {
         (Safe, Safe, Trap) => Trap,
         _ => Safe,
     }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+struct Row(Vec<Tile>);
+
+impl Row {
+    fn next(&self) -> Row {
+        let mut x = vec![Tile::Safe];
+        x.extend_from_slice(&self.0);
+        x.push(Tile::Safe);
+
+        Row(x.windows(3).map(|tiles| {
+            next_tile(tiles[0], tiles[1], tiles[2])
+        }).collect())
+    }
+}
+
+fn string_to_row(s: &str) -> Row {
+    Row(s.chars().map(|c| {
+        match c {
+            '.' => Tile::Safe,
+            '^' => Tile::Trap,
+            _ => panic!("unknown tile character {}", c),
+        }
+    }).collect())
 }
 
 #[cfg(test)]
@@ -62,19 +77,9 @@ mod test {
         assert_eq!(next_tile(Tile::Safe, Tile::Safe, Tile::Trap), Tile::Trap);
     }
 
-    fn string_to_row(s: &str) -> Vec<Tile> {
-        s.chars().map(|c| {
-            match c {
-                '.' => Tile::Safe,
-                '^' => Tile::Trap,
-                _ => panic!("unknown tile character {}", c),
-            }
-        }).collect()
-    }
-
     #[test]
     fn row_at_a_time() {
-        assert_eq!(next_row(&string_to_row("..^^.")), string_to_row(".^^^^"));
+        assert_eq!(string_to_row("..^^.").next(), string_to_row(".^^^^"));
     }
 
 }
