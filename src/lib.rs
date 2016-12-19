@@ -5,7 +5,7 @@ pub fn puzzle(input: &str) -> Result<usize, Box<Error>> {
     let mut row: Row = input.trim().parse()?;
     let mut result = 0;
 
-    for _ in 0..40 {
+    for _ in 0..400_000 {
         result += row.num_safe_tiles();
         row = row.next();
     }
