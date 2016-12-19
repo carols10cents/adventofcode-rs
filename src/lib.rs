@@ -1,11 +1,13 @@
 use std::str::FromStr;
 use std::error::Error;
+use std::fmt;
 
 pub fn puzzle(input: &str) -> Result<usize, Box<Error>> {
     let mut row: Row = input.trim().parse()?;
     let mut result = 0;
 
-    for _ in 0..400_000 {
+    for _ in 0..400 {
+        println!("{}", row);
         result += row.num_safe_tiles();
         row = row.next();
     }
@@ -17,6 +19,16 @@ pub fn puzzle(input: &str) -> Result<usize, Box<Error>> {
 pub enum Tile {
     Safe,
     Trap,
+}
+
+impl fmt::Display for Tile {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let c = match *self {
+            Tile::Safe => '.',
+            Tile::Trap => '^',
+        };
+        write!(f, "{}", c)
+    }
 }
 
 pub fn next_tile(left: Tile, center: Tile, right: Tile) -> Tile {
@@ -32,6 +44,15 @@ pub fn next_tile(left: Tile, center: Tile, right: Tile) -> Tile {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Row(Vec<Tile>);
+
+impl fmt::Display for Row {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for tile in &self.0 {
+            write!(f, "{}", tile)?;
+        }
+        Ok(())
+    }
+}
 
 impl Row {
     fn next(&self) -> Row {
