@@ -1,8 +1,15 @@
 use std::str::FromStr;
 use std::error::Error;
 
-pub fn puzzle(input: &str) -> u32 {
-    0
+pub fn puzzle(input: &str) -> Result<usize, Box<Error>> {
+    let first_row: Row = input.trim().parse()?;
+    let mut result = first_row.num_safe_tiles();
+    let mut next_row = first_row.next();
+    for _ in 0..39 {
+        result += next_row.num_safe_tiles();
+        next_row = next_row.next();
+    }
+    Ok(result)
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -34,6 +41,10 @@ impl Row {
         Row(x.windows(3).map(|tiles| {
             next_tile(tiles[0], tiles[1], tiles[2])
         }).collect())
+    }
+
+    fn num_safe_tiles(&self) -> usize {
+        self.0.iter().filter(|&&t| t == Tile::Safe).count()
     }
 }
 
