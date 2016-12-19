@@ -2,13 +2,14 @@ use std::str::FromStr;
 use std::error::Error;
 
 pub fn puzzle(input: &str) -> Result<usize, Box<Error>> {
-    let first_row: Row = input.trim().parse()?;
-    let mut result = first_row.num_safe_tiles();
-    let mut next_row = first_row.next();
-    for _ in 0..39 {
-        result += next_row.num_safe_tiles();
-        next_row = next_row.next();
+    let mut row: Row = input.trim().parse()?;
+    let mut result = 0;
+
+    for _ in 0..40 {
+        result += row.num_safe_tiles();
+        row = row.next();
     }
+
     Ok(result)
 }
 
