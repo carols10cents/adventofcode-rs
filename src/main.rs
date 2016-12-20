@@ -9,7 +9,6 @@ fn main() {
     let mut input = String::new();
     file.read_to_string(&mut input).expect("Could not read input.txt");
 
-    let answer = advent::puzzle(&input)
-                        .expect("Could not figure it out");
+    let answer = advent::puzzle(3017957);
     println!("The answer is {}", answer);
 }
